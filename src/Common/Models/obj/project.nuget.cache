@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "r6Q6S02jDfk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\juan-\\Desktop\\PSEP proyecto\\src\\Common\\Models\\Common.Models.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\juan-\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

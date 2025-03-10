@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Server.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FirebaseAdmin" Version="2.4.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Models\Common.Models.csproj" />
+    <ProjectReference Include="..\Models\Server.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Json\" />
+    <Folder Include="Json\Files\" />
+    <Folder Include="Firebase\" />
+  </ItemGroup>
+
+</Project> 

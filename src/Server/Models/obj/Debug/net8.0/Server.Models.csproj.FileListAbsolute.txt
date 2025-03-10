@@ -1,0 +1,15 @@
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\bin\Debug\net8.0\Server.Models.deps.json
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\bin\Debug\net8.0\Server.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\bin\Debug\net8.0\Server.Models.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\bin\Debug\net8.0\Common.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\bin\Debug\net8.0\Common.Models.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.csproj.AssemblyReference.cache
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.AssemblyInfoInputs.cache
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.AssemblyInfo.cs
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.csproj.CoreCompileInputs.cache
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.M.3DD4ED27.Up2Date
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\refint\Server.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\ref\Server.Models.dll

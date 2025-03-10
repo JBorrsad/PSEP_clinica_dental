@@ -1,0 +1,15 @@
+[
+  {
+    "Id": 1,
+    "PatientName": "Juan Borr\u00E1s",
+    "AppointmentDateTime": "2025-03-09T10:00:00",
+    "DurationMinutes": 30,
+    "Treatment": "",
+    "Notes": "",
+    "Status": "Programada",
+    "ContactPhone": "661437136",
+    "Email": "",
+    "TreatmentType": "limpieza",
+    "IsConfirmed": false
+  }
+]

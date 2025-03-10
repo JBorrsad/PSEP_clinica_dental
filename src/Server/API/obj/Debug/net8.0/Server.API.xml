@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Server.API</name>
+    </assembly>
+    <members>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetAppointments">
+            <summary>
+            Obtiene todas las citas
+            </summary>
+            <returns>Lista de citas</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetAppointment(System.Int64)">
+            <summary>
+            Obtiene una cita específica por su ID
+            </summary>
+            <param name="id">ID de la cita</param>
+            <returns>Detalles de la cita</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetAvailableSlots(System.DateTime)">
+            <summary>
+            Obtiene los horarios disponibles para una fecha específica
+            </summary>
+            <param name="date">Fecha a consultar</param>
+            <returns>Lista de horarios disponibles</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.PutAppointment(System.Int64,Common.Models.Appointment)">
+            <summary>
+            Actualiza una cita existente
+            </summary>
+            <param name="id">ID de la cita a actualizar</param>
+            <param name="appointment">Datos actualizados de la cita</param>
+            <returns>No Content si la operación es exitosa</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.PostAppointment(Common.Models.Appointment)">
+            <summary>
+            Crea una nueva cita
+            </summary>
+            <param name="appointment">Datos de la nueva cita</param>
+            <returns>La cita creada con su ID asignado</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.DeleteAppointment(System.Int64)">
+            <summary>
+            Elimina una cita existente
+            </summary>
+            <param name="id">ID de la cita a eliminar</param>
+            <returns>No Content si la operación es exitosa</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetPatientAppointments(System.String)">
+            <summary>
+            Obtiene las citas de un paciente específico
+            </summary>
+            <param name="name">Nombre del paciente</param>
+            <returns>Lista de citas del paciente</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AuthController.Login(Server.API.Controllers.LoginModel)">
+            <summary>
+            Inicia sesión y genera un token JWT
+            </summary>
+            <param name="model">Credenciales de inicio de sesión</param>
+            <returns>Token JWT si las credenciales son válidas</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AuthController.ValidateToken(Server.API.Controllers.ValidateTokenModel)">
+            <summary>
+            Valida un token JWT
+            </summary>
+            <returns>Estado de la validación del token</returns>
+        </member>
+        <member name="M:Server.API.Controllers.StaffController.Login(Server.API.Controllers.LoginModel)">
+            <summary>
+            Inicia sesión para el personal de la clínica
+            </summary>
+            <param name="model">Credenciales de inicio de sesión</param>
+            <returns>Token JWT si las credenciales son válidas</returns>
+        </member>
+        <member name="M:Server.API.Controllers.StaffController.GetPendingAppointments">
+            <summary>
+            Obtiene todas las citas pendientes
+            </summary>
+            <returns>Lista de citas pendientes</returns>
+        </member>
+        <member name="M:Server.API.Controllers.StaffController.UpdateAppointmentStatus(System.Int64,Server.API.Controllers.AppointmentStatusModel)">
+            <summary>
+            Actualiza el estado de una cita
+            </summary>
+            <param name="id">ID de la cita</param>
+            <param name="model">Modelo con el nuevo estado</param>
+            <returns>Cita actualizada</returns>
+        </member>
+        <member name="T:Server.API.Middleware.JwtMiddleware">
+            <summary>
+            Middleware para validación de tokens JWT en peticiones
+            </summary>
+        </member>
+    </members>
+</doc>

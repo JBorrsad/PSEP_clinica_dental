@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Clínica Dental</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container" id="loginForm">
+        <h1>Acceso Trabajadores</h1>
+        <form id="staffLoginForm">
+            <input type="text" id="username" placeholder="Usuario" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </div>
+
+    <div class="dashboard-container" id="dashboard" style="display: none;">
+        <header>
+            <h1>Panel de Gestión de Citas</h1>
+            <button id="logoutBtn">Cerrar Sesión</button>
+        </header>
+
+        <div class="requests-container">
+            <h2>Solicitudes Pendientes</h2>
+            <div id="pendingRequests"></div>
+        </div>
+
+        <div class="modal" id="requestModal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Gestionar Solicitud</h2>
+                <form id="updateRequestForm">
+                    <div class="form-group">
+                        <label>Paciente:</label>
+                        <input type="text" id="patientName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono:</label>
+                        <input type="text" id="contactPhone" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha y Hora:</label>
+                        <input type="datetime-local" id="appointmentDateTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Tratamiento:</label>
+                        <input type="text" id="treatmentType" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Notas:</label>
+                        <textarea id="notes"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" id="acceptBtn">Aceptar</button>
+                        <button type="button" id="rescheduleBtn">Reprogramar</button>
+                        <button type="button" id="rejectBtn">Rechazar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html> 

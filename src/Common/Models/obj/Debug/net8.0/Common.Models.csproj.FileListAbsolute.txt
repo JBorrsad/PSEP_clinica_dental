@@ -1,0 +1,11 @@
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\bin\Debug\net8.0\Common.Models.deps.json
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\bin\Debug\net8.0\Common.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\bin\Debug\net8.0\Common.Models.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.AssemblyInfoInputs.cache
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.AssemblyInfo.cs
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.csproj.CoreCompileInputs.cache
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\refint\Common.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\ref\Common.Models.dll
