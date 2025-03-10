@@ -153,6 +153,103 @@ namespace Server.Data.Firebase
             return response.IsSuccessStatusCode;
         }
 
+        /// <summary>
+        /// Elimina una cita de Firebase usando su clave
+        /// </summary>
+        /// <param name="firebaseKey">Clave de Firebase de la cita</param>
+        /// <returns>True si se eliminó correctamente, False en caso contrario</returns>
+        public async Task<bool> DeleteAppointmentAsync(string firebaseKey)
+        {
+            if (string.IsNullOrEmpty(firebaseKey))
+            {
+                return false;
+            }
+            
+            var response = await _httpClient.DeleteAsync(
+                $"{_firebaseUrl}/appointments/{firebaseKey}.json?auth={_apiKey}");
+            
+            return response.IsSuccessStatusCode;
+        }
+
+        /// <summary>
+        /// Agrega un elemento al historial de citas en Firebase
+        /// </summary>
+        /// <param name="historyItem">Elemento del historial a agregar</param>
+        /// <returns>Tarea asíncrona</returns>
+        public async Task AddAppointmentHistoryItemAsync(AppointmentHistoryItem historyItem)
+        {
+            try
+            {
+                string historyJson = JsonSerializer.Serialize(historyItem);
+                var historyData = JsonDocument.Parse(historyJson).RootElement;
+                
+                // Convertir el objeto a diccionario para Firebase
+                Dictionary<string, object> historyDict = new Dictionary<string, object>();
+                foreach (var property in historyData.EnumerateObject())
+                {
+                    historyDict[property.Name] = property.Value.ToString();
+                }
+                
+                // Añadir marca de tiempo para ordenación en Firebase
+                historyDict["timestamp"] = historyItem.Timestamp.ToString("o");
+                
+                await _httpClient
+                    .PostAsync($"{_firebaseUrl}/appointmentHistory.json?auth={_apiKey}", new StringContent(JsonSerializer.Serialize(historyDict), Encoding.UTF8, "application/json"));
+                
+                Console.WriteLine($"Historial de cita agregado a Firebase: {historyItem.PatientName}, Acción: {historyItem.Action}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al agregar historial a Firebase: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todo el historial de citas desde Firebase
+        /// </summary>
+        /// <returns>Lista de elementos del historial</returns>
+        public async Task<List<AppointmentHistoryItem>> GetAppointmentHistoryAsync()
+        {
+            try
+            {
+                var historySnapshot = await _httpClient
+                    .GetAsync($"{_firebaseUrl}/appointmentHistory.json?auth={_apiKey}");
+                historySnapshot.EnsureSuccessStatusCode();
+                
+                var historyJson = await historySnapshot.Content.ReadAsStringAsync();
+                var historyData = JsonDocument.Parse(historyJson).RootElement;
+                
+                var historyList = new List<AppointmentHistoryItem>();
+                
+                foreach (var item in historyData.EnumerateObject())
+                {
+                    var data = item.Value;
+                    
+                    var historyItem = new AppointmentHistoryItem
+                    {
+                        AppointmentId = data.TryGetProperty("AppointmentId", out var idElement) ? 
+                                        long.Parse(idElement.ToString()) : 0,
+                        PatientName = data.TryGetProperty("PatientName", out var nameElement) ? 
+                                        nameElement.ToString() : "",
+                        Action = data.TryGetProperty("Action", out var actionElement) ? 
+                                 actionElement.ToString() : "",
+                        Timestamp = data.TryGetProperty("timestamp", out var timeElement) ? 
+                                   DateTime.Parse(timeElement.ToString()) : 
+                                   DateTime.Now
+                    };
+                    
+                    historyList.Add(historyItem);
+                }
+                
+                return historyList;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener historial desde Firebase: {ex.Message}");
+                return new List<AppointmentHistoryItem>();
+            }
+        }
+
         #endregion
     }
 

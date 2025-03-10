@@ -4,12 +4,19 @@ let calendar = null;
 
 // Inicialización cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializar calendario
+    // Inicializar calendario con un mensaje de debug
+    console.log("Inicializando calendario...");
     calendar = new SimpleCalendar('calendar');
+    
+    if (!calendar) {
+        console.error("Error: No se pudo inicializar el calendario");
+    } else {
+        console.log("Calendario inicializado correctamente");
+    }
 
     // Manejar cambios en el tipo de tratamiento
     document.getElementById('treatmentType').addEventListener('change', () => {
-        if (calendar.selectedDate) {
+        if (calendar && calendar.selectedDate) {
             calendar.onDateSelected(calendar.selectedDate);
         }
     });
@@ -45,11 +52,24 @@ function displayTimeSlots(slots) {
 function selectTimeSlot(slot) {
     selectedTimeSlot = slot;
     
-    // Actualizar UI
-    document.querySelectorAll('.time-slot').forEach(btn => {
+    // Actualizar UI - marcar visualmente la hora seleccionada
+    const allButtons = document.querySelectorAll('.time-slot');
+    allButtons.forEach(btn => {
         btn.classList.remove('selected');
     });
-    event.target.classList.add('selected');
+    
+    // Asegurarse de que el elemento que disparó el evento quede marcado como seleccionado
+    if (event && event.target) {
+        event.target.classList.add('selected');
+    } else {
+        // Si no hay evento (o fue llamado programáticamente), buscar el botón correspondiente
+        const slotTime = new Date(slot).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        allButtons.forEach(btn => {
+            if (btn.textContent.trim() === slotTime) {
+                btn.classList.add('selected');
+            }
+        });
+    }
     
     // Mostrar formulario
     document.getElementById('appointmentForm').style.display = 'block';
@@ -78,7 +98,7 @@ async function handleFormSubmit(event) {
         selectedTimeSlot = null;
         
         // Actualizar calendario
-        if (calendar.selectedDate) {
+        if (calendar && calendar.selectedDate) {
             calendar.onDateSelected(calendar.selectedDate);
         }
     } catch (error) {

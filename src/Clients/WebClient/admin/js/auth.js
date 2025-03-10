@@ -1,37 +1,48 @@
 // Configuración
-const API_URL = 'http://localhost:5021/api';
+// Usar URL relativa para que funcione en cualquier entorno
+const API_URL = '/api';
+
+// Variables globales
+let staffToken = null;
 
 // Comprobar si hay un token guardado
 function checkAuth() {
+    console.log("Verificando autenticación...");
+    
     const token = localStorage.getItem('staffToken');
     if (token) {
+        console.log("Token encontrado, procediendo a validarlo");
+        staffToken = token;
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
-        loadPendingRequests();
+        
+        // Inicializar el dashboard
+        initializeDashboard();
+    } else {
+        console.log("No hay token guardado, mostrando formulario de login");
     }
 }
 
 // Manejar el inicio de sesión
 document.getElementById('staffLoginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log("Procesando inicio de sesión...");
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
-    // VERSIÓN TEMPORAL: Aceptar cualquier usuario/contraseña para facilitar las pruebas
-    if (username.trim() !== '' && password.trim() !== '') {
-        // Crear un token falso para la demostración
-        const fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-        localStorage.setItem('staffToken', fakeToken);
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        loadPendingRequests();
+    // Verificar si los campos están vacíos
+    if (!username.trim() || !password.trim()) {
+        alert('Por favor, completa todos los campos');
         return;
     }
 
-    // Código original que se usará cuando el backend funcione correctamente
     try {
-        const response = await fetch(`${API_URL}/Staff/login`, {
+        // Usar URL absoluta para la petición de API
+        const apiUrl = window.location.origin + API_URL;
+        console.log(`Realizando petición de login a ${apiUrl}/Staff/login`);
+        
+        const response = await fetch(`${apiUrl}/Staff/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -40,26 +51,38 @@ document.getElementById('staffLoginForm').addEventListener('submit', async (e) =
         });
 
         if (response.ok) {
+            console.log("Inicio de sesión exitoso");
             const data = await response.json();
             localStorage.setItem('staffToken', data.token);
+            staffToken = data.token;
+            
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            loadPendingRequests();
+            
+            // Inicializar el dashboard después del login
+            initializeDashboard();
         } else {
+            console.error(`Error de autenticación: ${response.status} ${response.statusText}`);
             alert('Usuario o contraseña incorrectos');
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al iniciar sesión');
+        console.error('Error al iniciar sesión:', error);
+        alert('Error al conectar con el servidor. Por favor, intenta de nuevo más tarde.');
     }
 });
 
 // Manejar el cierre de sesión
-document.getElementById('logoutBtn').addEventListener('click', () => {
+function logout() {
+    console.log("Cerrando sesión...");
     localStorage.removeItem('staffToken');
+    staffToken = null;
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('dashboard').style.display = 'none';
-});
+    // Limpiar cualquier dato sensible que pueda haber quedado
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    console.log("Sesión cerrada correctamente");
+}
 
 // Comprobar autenticación al cargar la página
 document.addEventListener('DOMContentLoaded', checkAuth); 

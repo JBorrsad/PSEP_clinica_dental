@@ -210,5 +210,44 @@ namespace Server.Data.Json
                 throw;
             }
         }
+
+        // Agregar un método para manejar el historial de citas
+        public List<AppointmentHistoryItem> GetAppointmentHistory()
+        {
+            // Verificar si el archivo existe
+            string historyFilePath = Path.Combine(_dataDirectory, "appointment_history.json");
+            if (!File.Exists(historyFilePath))
+            {
+                // Si no existe, devolver una lista vacía
+                return new List<AppointmentHistoryItem>();
+            }
+
+            // Leer el contenido del archivo
+            string historyJson = File.ReadAllText(historyFilePath);
+            
+            // Deserializar el contenido a una lista de elementos de historial
+            var history = JsonSerializer.Deserialize<List<AppointmentHistoryItem>>(historyJson) 
+                ?? new List<AppointmentHistoryItem>();
+            
+            return history;
+        }
+
+        // Agregar un elemento al historial de citas
+        public void AddAppointmentHistoryItem(AppointmentHistoryItem historyItem)
+        {
+            // Obtener el historial actual
+            var history = GetAppointmentHistory();
+            
+            // Agregar el nuevo elemento
+            history.Add(historyItem);
+            
+            // Escribir el historial actualizado al archivo
+            string historyFilePath = Path.Combine(_dataDirectory, "appointment_history.json");
+            string historyJson = JsonSerializer.Serialize(history, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            File.WriteAllText(historyFilePath, historyJson);
+        }
     }
 } 
