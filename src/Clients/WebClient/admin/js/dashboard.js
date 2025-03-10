@@ -1,10 +1,17 @@
+// Configuración
+// Usar URL absoluta para que funcione en cualquier entorno
+const API_URL = window.location.origin + '/api';
+
 // Variables globales
 let currentAppointment = null;
 let webSocket = null;
 let requestHistory = [];
 let adminCalendar = null;
-// Definir la URL de la API explícitamente
-const API_URL = window.location.origin + '/api';  // La URL base de la API
+
+// Obtener token de autenticación
+function getAuthToken() {
+    return localStorage.getItem('authToken');
+}
 
 // Inicialización de la página
 document.addEventListener('DOMContentLoaded', function() {
@@ -214,67 +221,74 @@ function setupCollapsibleSections() {
     }
 }
 
-// Configurar conexión WebSocket
+// Configurar WebSocket para notificaciones en tiempo real
 function setupWebSocketConnection() {
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
-    
-    console.log(`Conectando a WebSocket: ${wsUrl}`);
-    webSocket = new WebSocket(wsUrl);
-    
-    webSocket.onopen = function() {
-        console.log('Conexión WebSocket establecida');
-    };
-    
-    webSocket.onmessage = function(event) {
-        console.log('Mensaje recibido:', event.data);
-        try {
-            const notification = JSON.parse(event.data);
-            if (notification.Type === 'notification') {
-                // Actualizar los datos al recibir una notificación
-                loadPendingRequests();
-                adminCalendar.loadAppointments();
-                
-                // Si hay una fecha seleccionada, recargar las citas de ese día
-                if (adminCalendar.selectedDate) {
-                    loadAppointmentsForDate(adminCalendar.selectedDate);
-                }
-                
-                // Mostrar notificación visual
+    try {
+        console.log("Configurando conexión WebSocket...");
+        
+        // Construir URL del WebSocket (ws:// o wss:// según el protocolo de la página)
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/appointments`;
+        
+        console.log(`URL de WebSocket: ${wsUrl}`);
+        
+        // Crear conexión WebSocket
+        const socket = new WebSocket(wsUrl);
+        
+        // Configurar eventos de WebSocket
+        socket.onopen = function() {
+            console.log("Conexión WebSocket establecida correctamente");
+        };
+        
+        socket.onmessage = function(event) {
+            console.log("Mensaje WebSocket recibido:", event.data);
+            
+            try {
+                const notification = JSON.parse(event.data);
                 showNotification(notification);
                 
-                // Actualizar historial si es relevante
-                if (['created', 'updated', 'deleted'].includes(notification.Action.toLowerCase())) {
+                // Recargar datos según el tipo de notificación
+                if (notification.type === 'new') {
+                    loadPendingRequests();
+                } else if (notification.type === 'updated' || notification.type === 'deleted') {
+                    // Recargar todos los datos
+                    loadPendingRequests();
                     loadRequestHistory();
+                    if (adminCalendar) {
+                        adminCalendar.loadAppointments();
+                    }
                 }
+            } catch (error) {
+                console.error("Error al procesar mensaje WebSocket:", error);
             }
-        } catch (error) {
-            console.error('Error al procesar notificación:', error);
-        }
-    };
-    
-    webSocket.onclose = function(event) {
-        console.log('Conexión WebSocket cerrada:', event);
-        // Reconectar después de un retraso
-        setTimeout(setupWebSocketConnection, 5000);
-    };
-    
-    webSocket.onerror = function(error) {
-        console.error('Error en WebSocket:', error);
-    };
+        };
+        
+        socket.onerror = function(error) {
+            console.error("Error en la conexión WebSocket:", error);
+        };
+        
+        socket.onclose = function() {
+            console.log("Conexión WebSocket cerrada");
+            // Intentar reconectar después de un tiempo
+            setTimeout(setupWebSocketConnection, 5000);
+        };
+    } catch (error) {
+        console.error("Error al configurar WebSocket:", error);
+    }
 }
 
-// Mostrar notificación visual
+// Mostrar notificación en la interfaz de usuario
 function showNotification(notification) {
+    console.log("Mostrando notificación:", notification);
+    
     let message = '';
     let color = '';
     
-    switch(notification.Action.toLowerCase()) {
-        case 'created':
+    // Determinar mensaje y color según el tipo de notificación
+    switch (notification.type) {
+        case 'new':
             message = 'Nueva solicitud de cita recibida';
             color = '#4CAF50'; // Verde
-            // Reproducir sonido de notificación
-            playNotificationSound();
             break;
         case 'updated':
             message = 'Una cita ha sido actualizada';
@@ -310,93 +324,89 @@ function showNotification(notification) {
             document.body.removeChild(notificationElement);
         }, 500);
     }, 5000);
+    
+    // Reproducir sonido de notificación
+    playNotificationSound();
 }
 
 // Reproducir sonido de notificación
 function playNotificationSound() {
     try {
-        // Crear un oscilador de audio (beep) para la notificación
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 800; // Frecuencia más alta para un sonido de notificación
-        gainNode.gain.value = 0.1; // Volumen bajo
-        
-        oscillator.start();
-        
-        // Detener después de 0.2 segundos
-        setTimeout(() => {
-            oscillator.stop();
-            // Reproducir un segundo beep más bajo para el efecto de notificación
-            const oscillator2 = audioContext.createOscillator();
-            oscillator2.connect(gainNode);
-            oscillator2.type = 'sine';
-            oscillator2.frequency.value = 600;
-            oscillator2.start();
-            setTimeout(() => oscillator2.stop(), 100);
-        }, 200);
-    } catch (err) {
-        console.log('No se pudo reproducir el sonido de notificación', err);
+        // Crear elemento de audio
+        const audio = new Audio('/admin/sounds/notification.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(err => {
+            console.log("No se pudo reproducir el sonido: ", err);
+        });
+    } catch (error) {
+        console.error("Error al reproducir sonido:", error);
     }
 }
 
 // Cargar solicitudes pendientes
 async function loadPendingRequests() {
     console.log("Cargando solicitudes pendientes...");
+    
+    const container = document.getElementById('pendingRequests');
+    if (!container) {
+        console.error("Error: No se encontró el contenedor de solicitudes pendientes con ID 'pendingRequests'");
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    container.innerHTML = `
+        <div class="loading-message">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando solicitudes pendientes...</p>
+        </div>
+    `;
+    
     try {
-        // Verificar que el contenedor existe
-        const container = document.getElementById('pendingRequests');
-        if (!container) {
-            console.error("Error: No se encontró el contenedor de solicitudes pendientes con ID 'pendingRequests'");
-            return;
-        }
-
-        // Mostrar mensaje de carga
-        container.innerHTML = '<p class="loading-message">Cargando solicitudes pendientes...</p>';
-        
-        const token = localStorage.getItem('staffToken');
+        // Obtener el token de autenticación
+        const token = getAuthToken();
         if (!token) {
             console.error("Error: No hay token de autenticación");
-            container.innerHTML = '<p class="empty-message error-message">Error de autenticación</p>';
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error de autenticación. Por favor, inicie sesión nuevamente.</p>
+                </div>
+            `;
             return;
         }
         
-        // Usar URL de API global
-        const url = `${API_URL}/Staff/pending`;
+        // Construir URL de la API
+        const url = `${API_URL}/appointments`;
         console.log(`Realizando petición a: ${url}`);
         
+        // Realizar petición a la API
         const response = await fetch(url, {
-            method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cache-Control': 'no-cache'
+                'Content-Type': 'application/json'
             }
         });
-
-        if (response.ok) {
-            console.log("Solicitudes pendientes recibidas correctamente");
-            const appointments = await response.json();
-            console.log(`Recibidas ${appointments.length} solicitudes pendientes:`, appointments);
-            displayPendingRequests(appointments);
-        } else {
-            console.error(`Error al cargar solicitudes pendientes: ${response.status} ${response.statusText}`);
-            container.innerHTML = `<p class="empty-message error-message">Error ${response.status}: ${response.statusText}</p>`;
+        
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
         }
+        
+        const appointments = await response.json();
+        console.log(`Recibidas ${appointments.length} citas`);
+        
+        displayPendingRequests(appointments);
     } catch (error) {
         console.error("Error al cargar solicitudes pendientes:", error);
-        const container = document.getElementById('pendingRequests');
-        if (container) {
-            container.innerHTML = `<p class="empty-message error-message">Error: ${error.message}</p>`;
-        }
+        container.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar solicitudes pendientes: ${error.message}</p>
+            </div>
+        `;
     }
 }
 
-// Mostrar las solicitudes pendientes en el panel lateral
+// Mostrar solicitudes pendientes en el contenedor
 function displayPendingRequests(appointments) {
     console.log("Mostrando solicitudes pendientes...");
     
@@ -406,131 +416,41 @@ function displayPendingRequests(appointments) {
         return;
     }
     
-    container.innerHTML = '';
-
-    if (!appointments || appointments.length === 0) {
-        console.log("No hay solicitudes pendientes para mostrar");
-        container.innerHTML = '<p class="empty-message">No hay solicitudes pendientes</p>';
-        return;
-    }
-
-    console.log(`Mostrando ${appointments.length} solicitudes pendientes`);
-
     // Filtrar citas pendientes (no confirmadas)
     const pendingAppointments = appointments.filter(appointment => !appointment.isConfirmed);
-
+    
     if (pendingAppointments.length === 0) {
-        console.log("No hay solicitudes pendientes después del filtrado");
-        container.innerHTML = '<p class="empty-message">No hay solicitudes pendientes</p>';
+        container.innerHTML = `
+            <div class="empty-message">
+                <p>No hay solicitudes pendientes</p>
+            </div>
+        `;
         return;
     }
-
-    // Para depuración
-    console.log(`Hay ${pendingAppointments.length} solicitudes pendientes después del filtrado:`, pendingAppointments);
-
-    // Ordenar por fecha, las más recientes primero
-    pendingAppointments.sort((a, b) => 
-        new Date(a.appointmentDateTime).getTime() - new Date(b.appointmentDateTime).getTime()
-    );
-
-    // Crear elementos para cada solicitud pendiente
-    pendingAppointments.forEach((appointment, index) => {
-        console.log(`Procesando solicitud pendiente ${index + 1}:`, appointment);
+    
+    // Construir HTML para cada solicitud pendiente
+    let html = '';
+    pendingAppointments.forEach(appointment => {
+        // Formatear fecha y hora
+        const date = new Date(appointment.date);
+        const formattedDate = date.toLocaleDateString('es-ES');
+        const formattedTime = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         
-        try {
-            const appointmentDate = new Date(appointment.appointmentDateTime);
-            if (isNaN(appointmentDate.getTime())) {
-                console.warn(`Fecha inválida para la solicitud ${index + 1}: ${appointment.appointmentDateTime}`);
-                return;
-            }
-            
-            const card = document.createElement('div');
-            card.className = 'request-card';
-            
-            // Formatear fecha y hora
-            const dateStr = appointmentDate.toLocaleDateString('es-ES');
-            const timeStr = appointmentDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
-            
-            card.innerHTML = `
-                <div class="status-badge status-pending">Pendiente</div>
-                <h3>${appointment.patientName || 'Sin nombre'}</h3>
-                <p class="appointment-date">Fecha: ${dateStr}</p>
-                <p class="appointment-time">Hora: ${timeStr}</p>
-                <p class="appointment-treatment">Tratamiento: ${appointment.treatmentType || appointment.treatment || 'No especificado'}</p>
-            `;
-            
-            // Añadir evento de clic para abrir el modal
-            card.addEventListener('click', function() {
-                openAppointmentModal(appointment);
-            });
-            
-            container.appendChild(card);
-        } catch (error) {
-            console.error(`Error al procesar solicitud pendiente ${index + 1}:`, error);
-        }
+        html += `
+            <div class="request-item" data-id="${appointment.id}" onclick="openAppointmentModal(${JSON.stringify(appointment).replace(/"/g, '&quot;')})">
+                <div class="request-date">${formattedDate} - ${formattedTime}</div>
+                <div class="request-name">${appointment.patientName}</div>
+                <div class="request-treatment">${appointment.treatmentType}</div>
+            </div>
+        `;
     });
     
-    console.log("Solicitudes pendientes mostradas correctamente");
+    container.innerHTML = html;
 }
 
 // Cargar citas para una fecha específica
 async function loadAppointmentsForDate(date) {
-    console.log(`Cargando citas para la fecha: ${date.toISOString().split('T')[0]}`);
-    
-    try {
-        // Verificar que el contenedor existe
-        const container = document.getElementById('dailyAppointmentsList');
-        if (!container) {
-            console.error("Error: No se encontró el contenedor de citas diarias con ID 'dailyAppointmentsList'");
-            return;
-        }
-
-        // Mostrar mensaje de carga
-        container.innerHTML = '<p class="loading-message">Cargando citas...</p>';
-        
-        const token = localStorage.getItem('staffToken');
-        if (!token) {
-            console.error("Error: No hay token de autenticación");
-            container.innerHTML = '<p class="empty-message error-message">Error de autenticación</p>';
-            return;
-        }
-        
-        // Formatear la fecha para la URL
-        const dateString = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-        
-        // Usar URL de API global
-        const url = `${API_URL}/Staff/appointments/date/${dateString}`;
-        console.log(`Realizando petición a: ${url}`);
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Cache-Control': 'no-cache'
-            }
-        });
-
-        if (response.ok) {
-            console.log("Citas diarias recibidas correctamente");
-            const appointments = await response.json();
-            console.log(`Recibidas ${appointments.length} citas para el día ${dateString}:`, appointments);
-            displayDailyAppointments(appointments, date);
-        } else {
-            console.error(`Error al cargar las citas: ${response.status} ${response.statusText}`);
-            container.innerHTML = `<p class="empty-message error-message">Error ${response.status}: ${response.statusText}</p>`;
-        }
-    } catch (error) {
-        console.error('Error al cargar citas diarias:', error);
-        const container = document.getElementById('dailyAppointmentsList');
-        if (container) {
-            container.innerHTML = `<p class="empty-message error-message">Error: ${error.message}</p>`;
-        }
-    }
-}
-
-// Mostrar las citas diarias
-function displayDailyAppointments(appointments, date) {
-    console.log("Mostrando citas diarias...");
+    console.log(`Cargando citas para la fecha: ${date}`);
     
     const container = document.getElementById('dailyAppointmentsList');
     if (!container) {
@@ -538,428 +458,483 @@ function displayDailyAppointments(appointments, date) {
         return;
     }
     
-    container.innerHTML = '';
+    // Actualizar el elemento que muestra la fecha seleccionada
+    const selectedDateElement = document.getElementById('selectedDate');
+    if (selectedDateElement) {
+        const dateObj = new Date(date);
+        const formattedDate = dateObj.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        selectedDateElement.textContent = formattedDate;
+    }
+    
+    // Mostrar indicador de carga
+    container.innerHTML = `
+        <div class="loading-message">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando citas para ${date}...</p>
+        </div>
+    `;
+    
+    try {
+        // Obtener el token de autenticación
+        const token = getAuthToken();
+        if (!token) {
+            console.error("Error: No hay token de autenticación");
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error de autenticación. Por favor, inicie sesión nuevamente.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Construir URL de la API
+        const dateString = date.replace(/\//g, '-'); // Asegurar formato correcto de fecha
+        const url = `${API_URL}/appointments`;
+        console.log(`Realizando petición a: ${url}`);
+        
+        // Realizar petición a la API
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
+        }
+        
+        const allAppointments = await response.json();
+        
+        // Filtrar solo las citas de la fecha seleccionada
+        const dateOnly = date.split('T')[0]; // Obtener solo la parte de la fecha (sin hora)
+        const appointmentsForDate = allAppointments.filter(appointment => {
+            const appointmentDate = new Date(appointment.date);
+            const appointmentDateString = appointmentDate.toISOString().split('T')[0];
+            return appointmentDateString === dateOnly;
+        });
+        
+        console.log(`Encontradas ${appointmentsForDate.length} citas para la fecha ${date}`);
+        
+        // Mostrar las citas
+        displayDailyAppointments(appointmentsForDate, date);
+    } catch (error) {
+        console.error(`Error al cargar citas para la fecha ${date}:`, error);
+        container.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar citas: ${error.message}</p>
+            </div>
+        `;
+    }
+}
 
-    if (!appointments || appointments.length === 0) {
-        console.log("No hay citas programadas para este día");
-        container.innerHTML = '<p class="empty-message">No hay citas programadas para este día</p>';
+// Mostrar citas del día en el contenedor
+function displayDailyAppointments(appointments, date) {
+    console.log(`Mostrando ${appointments.length} citas para la fecha ${date}`);
+    
+    const container = document.getElementById('dailyAppointmentsList');
+    if (!container) {
+        console.error("Error: No se encontró el contenedor de citas diarias");
         return;
     }
-
-    console.log(`Mostrando ${appointments.length} citas para el día seleccionado`);
-
-    // Ordenar citas por hora
-    const sortedAppointments = [...appointments].sort((a, b) => 
-        new Date(a.appointmentDateTime).getTime() - new Date(b.appointmentDateTime).getTime()
-    );
-
-    // Para depuración
-    console.log("Citas ordenadas:", sortedAppointments);
-
-    // Crear elementos para cada cita
-    sortedAppointments.forEach((appointment, index) => {
-        console.log(`Procesando cita ${index + 1}:`, appointment);
+    
+    if (appointments.length === 0) {
+        container.innerHTML = `
+            <div class="empty-message">
+                <p>No hay citas programadas para esta fecha</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar las citas por hora
+    appointments.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Construir HTML para cada cita
+    let html = '';
+    appointments.forEach(appointment => {
+        // Formatear fecha y hora
+        const appointmentDateTime = new Date(appointment.date);
+        const formattedTime = appointmentDateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         
-        try {
-            const appointmentDate = new Date(appointment.appointmentDateTime);
-            if (isNaN(appointmentDate.getTime())) {
-                console.warn(`Fecha inválida para la cita ${index + 1}: ${appointment.appointmentDateTime}`);
-                return;
-            }
-            
-            const item = document.createElement('div');
-            item.className = `daily-appointment-item${appointment.isConfirmed ? '' : ' pending'}`;
-            
-            // Formatear la hora
-            const timeStr = appointmentDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
-            
-            item.innerHTML = `
-                <div class="daily-appointment-time">
-                    ${timeStr}
-                    <span class="status-badge status-${appointment.isConfirmed ? 'confirmed' : 'pending'}">
-                        ${appointment.isConfirmed ? 'Confirmada' : 'Pendiente'}
-                    </span>
-                </div>
-                <div class="daily-appointment-patient">${appointment.patientName || 'Sin nombre'}</div>
-                <div class="daily-appointment-treatment">${appointment.treatmentType || appointment.treatment || 'No especificado'}</div>
-            `;
-            
-            // Añadir evento de clic para abrir el modal
-            item.addEventListener('click', function() {
-                openAppointmentModal(appointment);
-            });
-            
-            container.appendChild(item);
-        } catch (error) {
-            console.error(`Error al procesar cita ${index + 1}:`, error);
+        // Determinar el estado de la cita
+        let statusClass = '';
+        let statusText = '';
+        
+        if (appointment.isConfirmed) {
+            statusClass = 'status-confirmed';
+            statusText = 'Confirmada';
+        } else {
+            statusClass = 'status-pending';
+            statusText = 'Pendiente';
         }
+        
+        html += `
+            <div class="appointment-item" data-id="${appointment.id}" onclick="openAppointmentModal(${JSON.stringify(appointment).replace(/"/g, '&quot;')})">
+                <div class="appointment-time">${formattedTime}</div>
+                <div class="appointment-patient">${appointment.patientName}</div>
+                <div class="appointment-treatment">${appointment.treatmentType}</div>
+                <span class="appointment-status ${statusClass}">${statusText}</span>
+            </div>
+        `;
     });
     
-    console.log("Citas diarias mostradas correctamente");
+    container.innerHTML = html;
 }
 
 // Cargar historial de solicitudes
 async function loadRequestHistory() {
     console.log("Cargando historial de solicitudes...");
+    
+    const container = document.getElementById('requestHistory');
+    if (!container) {
+        console.error("Error: No se encontró el contenedor del historial de solicitudes");
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    container.innerHTML = `
+        <div class="loading-message">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando historial...</p>
+        </div>
+    `;
+    
     try {
-        const token = localStorage.getItem('staffToken');
+        // Obtener el token de autenticación
+        const token = getAuthToken();
         if (!token) {
             console.error("Error: No hay token de autenticación");
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error de autenticación. Por favor, inicie sesión nuevamente.</p>
+                </div>
+            `;
             return;
         }
         
-        // Verificar si el contenedor existe antes de intentar cargar los datos
-        const container = document.getElementById('requestHistory');
-        if (!container) {
-            console.error("Error: No se encontró el contenedor de historial con ID 'requestHistory'");
-            return;
-        }
-
-        // Mostrar mensaje de carga
-        container.innerHTML = '<p class="loading-message">Cargando historial...</p>';
+        // Construir URL de la API
+        const url = `${API_URL}/appointments/history`;
+        console.log(`Realizando petición a: ${url}`);
         
-        // Usar la URL API definida globalmente
-        const url = `${API_URL}/Staff/history`;
-        console.log(`Realizando petición al endpoint de historial: ${url}`);
-        
+        // Realizar petición a la API
         const response = await fetch(url, {
-            method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Cache-Control': 'no-cache'
+                'Content-Type': 'application/json'
             }
         });
-
-        if (response.ok) {
-            console.log("Respuesta recibida correctamente del endpoint de historial");
-            requestHistory = await response.json();
-            console.log(`Recibidos ${requestHistory.length} elementos de historial:`, requestHistory);
-            displayRequestHistory();
-        } else {
-            console.error(`Error al cargar el historial: ${response.status} ${response.statusText}`);
-            container.innerHTML = `<p class="empty-message error-message">Error ${response.status}: ${response.statusText}</p>`;
+        
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
         }
+        
+        const historyItems = await response.json();
+        console.log(`Recibidos ${historyItems.length} elementos de historial`);
+        
+        displayRequestHistory(historyItems);
     } catch (error) {
-        console.error("Error al cargar el historial de solicitudes:", error);
-        // Mostrar mensaje de error en la UI
-        const container = document.getElementById('requestHistory');
-        if (container) {
-            container.innerHTML = `<p class="empty-message error-message">Error: ${error.message}</p>`;
-        }
-    }
-}
-
-// Mostrar historial de solicitudes
-function displayRequestHistory() {
-    console.log("Mostrando historial de solicitudes...");
-    const container = document.getElementById('requestHistory');
-    
-    if (!container) {
-        console.error("Error: No se encontró el contenedor de historial de solicitudes");
-        return;
-    }
-    
-    container.innerHTML = '';
-
-    if (!requestHistory || requestHistory.length === 0) {
-        console.log("No hay historial de solicitudes para mostrar");
-        container.innerHTML = '<p class="empty-message">No hay historial de solicitudes</p>';
-        return;
-    }
-
-    console.log(`Mostrando ${requestHistory.length} elementos de historial`);
-    
-    // Ordenar por fecha, más recientes primero
-    const sortedHistory = [...requestHistory].sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-    // Para depuración
-    console.log("Historial ordenado:", sortedHistory);
-
-    // Crear elementos para cada item del historial
-    sortedHistory.forEach((item, index) => {
-        if (!item) {
-            console.warn(`Elemento ${index} es nulo o indefinido`);
-            return;
-        }
-        
-        console.log(`Procesando elemento de historial ${index + 1}:`, item);
-        
-        // Verificar si el elemento tiene las propiedades necesarias
-        if (!item.patientName || !item.action || !item.timestamp) {
-            console.warn(`Elemento de historial ${index + 1} incompleto:`, item);
-            return; // Saltar este elemento
-        }
-        
-        // Crear el elemento de historial
-        const historyItem = document.createElement('div');
-        
-        // Determinar la clase CSS según el tipo de acción
-        let statusClass = '';
-        const action = (item.action || '').toLowerCase();
-        
-        if (action.includes('aceptada') || action.includes('accepted')) {
-            statusClass = 'accepted';
-        } else if (action.includes('rechazada') || action.includes('rejected')) {
-            statusClass = 'rejected';
-        } else if (action.includes('reprogramada') || action.includes('rescheduled')) {
-            statusClass = 'rescheduled';
-        } else {
-            console.log(`Tipo de acción no reconocido: ${item.action}`);
-        }
-        
-        historyItem.className = `history-item ${statusClass}`;
-        
-        // Formatear la fecha
-        let formattedDate = 'Fecha desconocida';
-        let formattedTime = '';
-        
-        try {
-            const date = new Date(item.timestamp);
-            if (!isNaN(date.getTime())) {
-                formattedDate = date.toLocaleDateString('es-ES');
-                formattedTime = date.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
-            } else {
-                console.warn(`Fecha inválida: ${item.timestamp}`);
-            }
-        } catch (error) {
-            console.error(`Error al formatear la fecha del elemento ${index + 1}:`, error);
-        }
-        
-        // Crear HTML del elemento
-        historyItem.innerHTML = `
-            <div class="history-item-header">
-                <span class="patient-name">${item.patientName || 'Paciente sin nombre'}</span>
-                <span class="history-item-date">${formattedDate} ${formattedTime}</span>
-            </div>
-            <div class="history-item-status">
-                <span class="status-before">Pendiente</span>
-                <span class="status-arrow">→</span>
-                <span class="status-after">${item.action}</span>
+        console.error("Error al cargar historial de solicitudes:", error);
+        container.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar historial: ${error.message}</p>
             </div>
         `;
-        
-        container.appendChild(historyItem);
-    });
-    
-    console.log("Historial de solicitudes mostrado correctamente");
+    }
 }
 
-// Abrir modal de cita
-function openAppointmentModal(appointment) {
-    currentAppointment = appointment;
-    const modal = document.getElementById('requestModal');
+// Mostrar historial de solicitudes en el contenedor
+function displayRequestHistory(historyItems) {
+    console.log("Mostrando historial de solicitudes:", historyItems);
     
-    // Desactivar modo de reprogramación
-    disableRescheduleMode();
-    
-    // Rellenar datos en el modal
-    document.getElementById('patientName').value = appointment.patientName;
-    document.getElementById('contactPhone').value = appointment.contactPhone || 'No disponible';
-    document.getElementById('contactEmail').value = appointment.email || 'No disponible';
-    
-    // Formatear correctamente la fecha para el campo datetime-local
-    try {
-        const appointmentDate = new Date(appointment.appointmentDateTime);
-        if (!isNaN(appointmentDate.getTime())) {
-            // Formatear a YYYY-MM-DDThh:mm (formato requerido por datetime-local)
-            const localDatetime = appointmentDate.toISOString().slice(0, 16);
-            document.getElementById('appointmentDateTime').value = localDatetime;
-        } else {
-            console.error("Fecha inválida:", appointment.appointmentDateTime);
-            document.getElementById('appointmentDateTime').value = "";
-        }
-    } catch (error) {
-        console.error("Error al formatear la fecha:", error);
-        document.getElementById('appointmentDateTime').value = "";
+    const container = document.getElementById('requestHistory');
+    if (!container) {
+        console.error("Error: No se encontró el contenedor del historial de solicitudes");
+        return;
     }
     
-    // Seleccionar el tratamiento correcto
-    const treatmentSelect = document.getElementById('treatmentType');
-    const treatmentOptions = Array.from(treatmentSelect.options);
-    const treatmentIndex = treatmentOptions.findIndex(option => 
-        option.value === appointment.treatmentType
-    );
+    if (!historyItems || historyItems.length === 0) {
+        container.innerHTML = `
+            <div class="empty-message">
+                <p>No hay historial de solicitudes</p>
+            </div>
+        `;
+        return;
+    }
     
-    treatmentSelect.selectedIndex = treatmentIndex >= 0 ? treatmentIndex : 0;
-    document.getElementById('notes').value = appointment.notes || '';
+    // Ordenar el historial por fecha (más reciente primero)
+    historyItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Construir HTML para cada elemento del historial
+    let html = '';
+    historyItems.forEach(item => {
+        // Formatear fecha y hora
+        const timestamp = new Date(item.timestamp);
+        const formattedDate = timestamp.toLocaleDateString('es-ES');
+        const formattedTime = timestamp.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        // Determinar el estado
+        let statusClass = '';
+        let statusText = '';
+        
+        switch (item.action) {
+            case 'confirm':
+                statusClass = 'accepted';
+                statusText = 'Confirmada';
+                break;
+            case 'reject':
+                statusClass = 'rejected';
+                statusText = 'Rechazada';
+                break;
+            case 'reschedule':
+                statusClass = 'rescheduled';
+                statusText = 'Reprogramada';
+                break;
+            default:
+                statusClass = '';
+                statusText = item.action;
+        }
+        
+        html += `
+            <div class="history-item">
+                <div>${formattedDate} ${formattedTime}</div>
+                <div>${item.patientName}</div>
+                <span class="history-status ${statusClass}">${statusText}</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
 
+// Abrir modal con detalles de la cita
+function openAppointmentModal(appointment) {
+    console.log("Abriendo modal para la cita:", appointment);
+    
+    // Obtener elementos del modal
+    const modal = document.getElementById('appointmentModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const appointmentDetails = document.getElementById('appointmentDetails');
+    const confirmBtn = document.getElementById('confirmAppointment');
+    const cancelBtn = document.getElementById('cancelAppointment');
+    const closeBtn = document.getElementById('closeModal');
+    
+    if (!modal || !modalTitle || !appointmentDetails || !confirmBtn || !cancelBtn || !closeBtn) {
+        console.error("Error: No se encontraron los elementos del modal");
+        return;
+    }
+    
+    // Almacenar la cita actual en una variable global para usarla en las acciones
+    window.currentAppointment = appointment;
+    
+    // Formatear fecha y hora
+    const appointmentDateTime = new Date(appointment.date);
+    const formattedDate = appointmentDateTime.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+    const formattedTime = appointmentDateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    
+    // Actualizar título del modal
+    modalTitle.textContent = `Cita con ${appointment.patientName}`;
+    
+    // Actualizar detalles de la cita
+    appointmentDetails.innerHTML = `
+        <div class="appointment-detail-item">
+            <strong>Paciente:</strong> ${appointment.patientName}
+        </div>
+        <div class="appointment-detail-item">
+            <strong>Teléfono:</strong> ${appointment.contactPhone || 'No disponible'}
+        </div>
+        <div class="appointment-detail-item">
+            <strong>Email:</strong> ${appointment.contactEmail || 'No disponible'}
+        </div>
+        <div class="appointment-detail-item">
+            <strong>Fecha:</strong> ${formattedDate}
+        </div>
+        <div class="appointment-detail-item">
+            <strong>Hora:</strong> ${formattedTime}
+        </div>
+        <div class="appointment-detail-item">
+            <strong>Tratamiento:</strong> ${appointment.treatmentType}
+        </div>
+        <div class="appointment-detail-item">
+            <strong>Estado:</strong> ${appointment.isConfirmed ? 'Confirmada' : 'Pendiente'}
+        </div>
+        ${appointment.notes ? `
+        <div class="appointment-detail-item">
+            <strong>Notas:</strong> ${appointment.notes}
+        </div>` : ''}
+    `;
+    
+    // Configurar visibilidad de botones según el estado de la cita
+    if (appointment.isConfirmed) {
+        confirmBtn.style.display = 'none';
+    } else {
+        confirmBtn.style.display = 'block';
+    }
+    
+    // Configurar eventos para los botones
+    confirmBtn.onclick = function() {
+        updateAppointment('confirm');
+    };
+    
+    cancelBtn.onclick = function() {
+        if (confirm('¿Está seguro de que desea cancelar esta cita?')) {
+            updateAppointment('reject');
+        }
+    };
+    
+    closeBtn.onclick = closeModal;
+    
+    // Configurar cierre del modal al hacer clic en la X
+    const closeModalX = modal.querySelector('.close-modal');
+    if (closeModalX) {
+        closeModalX.onclick = closeModal;
+    }
+    
+    // Mostrar el modal
     modal.style.display = 'block';
 }
 
-// Cerrar modal
+// Cerrar el modal
 function closeModal() {
-    document.getElementById('requestModal').style.display = 'none';
-    disableRescheduleMode();
-}
-
-// Activar modo de reprogramación
-function toggleRescheduleMode() {
-    const isRescheduleMode = document.getElementById('appointmentDateTime').readOnly === false;
-    
-    if (isRescheduleMode) {
-        disableRescheduleMode();
-    } else {
-        enableRescheduleMode();
+    const modal = document.getElementById('appointmentModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
-// Habilitar modo de reprogramación
-function enableRescheduleMode() {
-    document.getElementById('appointmentDateTime').readOnly = false;
-    document.getElementById('treatmentType').disabled = false;
-    document.getElementById('notes').readOnly = false;
-    document.getElementById('dateEditHint').style.display = 'block';
-    
-    document.getElementById('toggleRescheduleBtn').style.display = 'none';
-    document.getElementById('saveRescheduleBtn').style.display = 'inline-block';
-}
-
-// Deshabilitar modo de reprogramación
-function disableRescheduleMode() {
-    document.getElementById('appointmentDateTime').readOnly = true;
-    document.getElementById('treatmentType').disabled = true;
-    document.getElementById('notes').readOnly = true;
-    document.getElementById('dateEditHint').style.display = 'none';
-    
-    document.getElementById('toggleRescheduleBtn').style.display = 'inline-block';
-    document.getElementById('saveRescheduleBtn').style.display = 'none';
-}
-
-// Actualizar el estado de una cita
+// Actualizar estado de una cita
 async function updateAppointment(action) {
-    console.log(`Actualizando cita con acción: ${action}`);
-    if (!currentAppointment) {
-        console.error("Error: No hay cita seleccionada para actualizar");
-        return;
-    }
-
+    console.log(`Actualizando cita #${currentAppointment.id} con acción: ${action}`);
+    
     try {
-        const token = localStorage.getItem('staffToken');
+        // Obtener el token de autenticación
+        const token = getAuthToken();
         if (!token) {
-            console.error("Error: No hay token de autenticación");
+            alert("Error de autenticación. Por favor, inicie sesión nuevamente.");
             return;
         }
         
-        let endpoint;
-        let method;
-        let updatedData = null;
-        let actionText = '';
+        let apiUrl = API_URL;
+        let endpoint = '';
+        let method = '';
+        let body = {};
         
-        // Usar URL absoluta
-        const apiUrl = window.location.origin + '/api';
-        
-        // Configurar acción según el tipo
-        if (action === 'reject') {
-            endpoint = `${apiUrl}/Staff/appointments/${currentAppointment.id}`;
-            method = 'DELETE';
-            actionText = 'Rechazada';
-        } else if (action === 'confirm') {
-            endpoint = `${apiUrl}/Staff/appointments/${currentAppointment.id}/status`;
-            method = 'PUT';
-            updatedData = {
-                isConfirmed: true,
-                notes: document.getElementById('notes').value
-            };
-            actionText = 'Aceptada';
-        } else if (action === 'reschedule') {
-            endpoint = `${apiUrl}/Staff/appointments/${currentAppointment.id}/status`;
-            method = 'PUT';
-            
-            const newDateTime = document.getElementById('appointmentDateTime').value;
-            if (!newDateTime) {
-                alert('Por favor, selecciona una fecha y hora para reprogramar la cita.');
-                return;
-            }
-            
-            updatedData = {
-                isConfirmed: true,
-                notes: document.getElementById('notes').value,
-                appointmentDateTime: new Date(newDateTime).toISOString(),
-                treatmentType: document.getElementById('treatmentType').value
-            };
-            actionText = 'Reprogramada';
-        } else {
-            console.error(`Acción desconocida: ${action}`);
-            return;
+        // Configurar la petición según la acción
+        switch (action) {
+            case 'confirm':
+                endpoint = `${apiUrl}/appointments/${currentAppointment.id}/status`;
+                method = 'PUT';
+                body = { status: 'confirmed' };
+                break;
+            case 'reject':
+                endpoint = `${apiUrl}/appointments/${currentAppointment.id}/status`;
+                method = 'PUT';
+                body = { status: 'rejected' };
+                break;
+            case 'reschedule':
+                endpoint = `${apiUrl}/appointments/${currentAppointment.id}/status`;
+                method = 'PUT';
+                body = { 
+                    status: 'rescheduled',
+                    newDate: document.getElementById('newDate').value
+                };
+                break;
+            default:
+                throw new Error(`Acción no válida: ${action}`);
         }
         
-        console.log(`Realizando petición ${method} a ${endpoint}`);
+        console.log(`Realizando petición a: ${endpoint}`);
         
+        // Realizar petición a la API
         const response = await fetch(endpoint, {
             method: method,
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             },
-            body: method === 'PUT' ? JSON.stringify(updatedData) : null
+            body: JSON.stringify(body)
         });
-
-        if (response.ok) {
-            console.log("Cita actualizada correctamente");
-            
-            // Crear elemento para el historial
-            const historyItem = {
-                appointmentId: currentAppointment.id,
-                patientName: currentAppointment.patientName,
-                action: actionText,
-                timestamp: new Date().toISOString()
-            };
-            
-            // Actualizar la interfaz local inmediatamente
-            addToRequestHistory(historyItem);
-            
-            // Mostrar notificación
-            showActionNotification(`Cita ${actionText.toLowerCase()} exitosamente`);
-            
-            // Cerrar el modal
-            closeModal();
-            
-            // Recargar datos
-            loadPendingRequests();
-            
-            if (adminCalendar) {
-                adminCalendar.loadAppointments();
-            }
-            
-            if (adminCalendar && adminCalendar.selectedDate) {
-                loadAppointmentsForDate(adminCalendar.selectedDate);
-            }
-        } else {
-            console.error(`Error al actualizar la cita: ${response.status} ${response.statusText}`);
-            const errorData = await response.json().catch(() => ({}));
-            alert(`Error al procesar la solicitud: ${errorData.message || response.statusText}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
+        }
+        
+        // Procesar respuesta
+        const result = await response.json();
+        console.log("Respuesta de actualización:", result);
+        
+        // Cerrar modal
+        closeModal();
+        
+        // Mostrar notificación
+        let message = '';
+        switch (action) {
+            case 'confirm':
+                message = 'Cita confirmada correctamente';
+                break;
+            case 'reject':
+                message = 'Cita cancelada correctamente';
+                break;
+            case 'reschedule':
+                message = 'Cita reprogramada correctamente';
+                break;
+        }
+        
+        showActionNotification(message);
+        
+        // Recargar datos
+        if (adminCalendar) {
+            adminCalendar.loadAppointments();
+        }
+        
+        loadPendingRequests();
+        loadRequestHistory();
+        
+        // Si hay una fecha seleccionada, recargar las citas de ese día
+        if (currentAppointment && currentAppointment.date) {
+            const dateObj = new Date(currentAppointment.date);
+            const dateString = dateObj.toISOString().split('T')[0];
+            loadAppointmentsForDate(dateString);
         }
     } catch (error) {
-        console.error('Error al actualizar la cita:', error);
-        alert('Error al procesar la solicitud. Por favor, inténtalo de nuevo.');
+        console.error(`Error al ${action === 'confirm' ? 'confirmar' : action === 'reject' ? 'rechazar' : 'reprogramar'} la cita:`, error);
+        alert(`Error al ${action === 'confirm' ? 'confirmar' : action === 'reject' ? 'rechazar' : 'reprogramar'} la cita: ${error.message}`);
     }
-}
-
-// Agregar elemento al historial local
-function addToRequestHistory(historyItem) {
-    requestHistory.unshift(historyItem);
-    displayRequestHistory();
 }
 
 // Mostrar notificación de acción completada
 function showActionNotification(message) {
+    // Crear elemento de notificación
     const notification = document.createElement('div');
-    notification.className = 'action-notification';
-    notification.textContent = message;
     notification.style.position = 'fixed';
     notification.style.bottom = '20px';
-    notification.style.left = '50%';
-    notification.style.transform = 'translateX(-50%)';
-    notification.style.padding = '10px 20px';
+    notification.style.right = '20px';
     notification.style.backgroundColor = '#4CAF50';
     notification.style.color = 'white';
-    notification.style.borderRadius = '4px';
+    notification.style.padding = '15px 20px';
+    notification.style.borderRadius = '5px';
+    notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
     notification.style.zIndex = '1000';
+    notification.textContent = message;
     
+    // Añadir al DOM
     document.body.appendChild(notification);
     
+    // Eliminar después de 3 segundos
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transition = 'opacity 0.5s ease';
@@ -968,6 +943,11 @@ function showActionNotification(message) {
         }, 500);
     }, 3000);
 }
+
+// Exponer funciones globalmente
+window.openAppointmentModal = openAppointmentModal;
+window.updateAppointment = updateAppointment;
+window.closeModal = closeModal;
 
 // Cerrar sesión
 function logout() {

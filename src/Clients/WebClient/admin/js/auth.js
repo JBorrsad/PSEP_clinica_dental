@@ -1,88 +1,124 @@
 // Configuración
-// Usar URL relativa para que funcione en cualquier entorno
-const API_URL = '/api';
+// Usar URL absoluta para que funcione en cualquier entorno
+const API_URL = window.location.origin + '/api';
 
 // Variables globales
-let staffToken = null;
+let authToken = null;
 
-// Comprobar si hay un token guardado
+// Comprobar si hay un token guardado y verificar su validez
 function checkAuth() {
     console.log("Verificando autenticación...");
     
-    const token = localStorage.getItem('staffToken');
+    const token = localStorage.getItem('authToken');
     if (token) {
         console.log("Token encontrado, procediendo a validarlo");
-        staffToken = token;
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+        authToken = token;
         
-        // Inicializar el dashboard
-        initializeDashboard();
+        // Validar que el token sea válido
+        validateToken(token)
+            .then(isValid => {
+                if (isValid) {
+                    console.log("Token válido, actualizando interfaz");
+                    
+                    // Mostrar la información del usuario
+                    showUserInfo();
+                    
+                    // Inicializar el dashboard si la función está disponible
+                    if (typeof initializeDashboard === 'function') {
+                        console.log("Inicializando dashboard desde auth.js");
+                        initializeDashboard();
+                    } else {
+                        console.error("Función initializeDashboard no encontrada");
+                    }
+                } else {
+                    console.log("Token inválido, redirigiendo a login");
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                    window.location.href = '/login.html';
+                }
+            })
+            .catch(error => {
+                console.error("Error al validar token:", error);
+                localStorage.removeItem('authToken');
+                authToken = null;
+                window.location.href = '/login.html';
+            });
     } else {
-        console.log("No hay token guardado, mostrando formulario de login");
+        console.log("No hay token guardado, redirigiendo a login");
+        window.location.href = '/login.html';
     }
 }
 
-// Manejar el inicio de sesión
-document.getElementById('staffLoginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    console.log("Procesando inicio de sesión...");
-    
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    // Verificar si los campos están vacíos
-    if (!username.trim() || !password.trim()) {
-        alert('Por favor, completa todos los campos');
-        return;
-    }
-
+// Validar token con el servidor
+async function validateToken(token) {
     try {
-        // Usar URL absoluta para la petición de API
-        const apiUrl = window.location.origin + API_URL;
-        console.log(`Realizando petición de login a ${apiUrl}/Staff/login`);
+        console.log(`Validando token: ${token.substring(0, 15)}...`);
         
-        const response = await fetch(`${apiUrl}/Staff/login`, {
+        const response = await fetch(`${API_URL}/Auth/validate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ token })
         });
 
         if (response.ok) {
-            console.log("Inicio de sesión exitoso");
             const data = await response.json();
-            localStorage.setItem('staffToken', data.token);
-            staffToken = data.token;
-            
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            
-            // Inicializar el dashboard después del login
-            initializeDashboard();
+            console.log("Validación exitosa:", data);
+            return data.isValid;
         } else {
-            console.error(`Error de autenticación: ${response.status} ${response.statusText}`);
-            alert('Usuario o contraseña incorrectos');
+            console.error(`Error al validar token: ${response.status} ${response.statusText}`);
+            return false;
         }
     } catch (error) {
-        console.error('Error al iniciar sesión:', error);
-        alert('Error al conectar con el servidor. Por favor, intenta de nuevo más tarde.');
+        console.error("Error al validar token:", error);
+        return false;
     }
-});
-
-// Manejar el cierre de sesión
-function logout() {
-    console.log("Cerrando sesión...");
-    localStorage.removeItem('staffToken');
-    staffToken = null;
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('dashboard').style.display = 'none';
-    // Limpiar cualquier dato sensible que pueda haber quedado
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    console.log("Sesión cerrada correctamente");
 }
 
-// Comprobar autenticación al cargar la página
-document.addEventListener('DOMContentLoaded', checkAuth); 
+// Mostrar información del usuario
+function showUserInfo() {
+    const userEmailElement = document.getElementById('userEmail');
+    if (userEmailElement) {
+        try {
+            // Obtener el email del token (JWT)
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const email = payload.email || 'Administrador';
+                userEmailElement.textContent = email;
+            } else {
+                userEmailElement.textContent = 'Usuario';
+            }
+        } catch (error) {
+            console.error("Error al decodificar token:", error);
+            userEmailElement.textContent = 'Usuario';
+        }
+    }
+}
+
+// Manejar el cierre de sesión
+function setupLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+}
+
+// Cerrar sesión
+function logout() {
+    console.log("Cerrando sesión...");
+    localStorage.removeItem('authToken');
+    authToken = null;
+    window.location.href = '/login.html';
+}
+
+// Inicializar cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM cargado, inicializando autenticación");
+    checkAuth();
+    setupLogout();
+}); 
