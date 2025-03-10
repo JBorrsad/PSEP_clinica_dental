@@ -1,0 +1,437 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Panel de administración */
+.admin-panel {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Barra lateral */
+.sidebar {
+    width: 300px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #34495e;
+}
+
+.sidebar-header h2 {
+    margin-bottom: 5px;
+}
+
+#userEmail {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.sidebar-menu {
+    padding: 20px 0;
+}
+
+.sidebar-menu a {
+    display: block;
+    padding: 12px 20px;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.sidebar-menu a:hover, .sidebar-menu a.active {
+    background-color: #34495e;
+}
+
+.sidebar-section {
+    margin-top: auto;
+    border-top: 1px solid #34495e;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    background-color: #34495e;
+    transition: background-color 0.3s;
+}
+
+.section-header:hover {
+    background-color: #3d5a75;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.section-header i {
+    transition: transform 0.3s;
+}
+
+.section-header.active i {
+    transform: rotate(180deg);
+}
+
+.section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.section-content.active {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Contenido principal */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #ecf0f1;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.dashboard-widgets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.widget {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.widget-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.widget-header h3 {
+    margin: 0;
+}
+
+.widget-content {
+    padding: 20px;
+}
+
+/* Calendario */
+#adminCalendar {
+    min-height: 400px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.calendar-nav-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.calendar-body {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.weekdays > div {
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.day {
+    position: relative;
+    height: 50px;
+    border: 1px solid #e9ecef;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.day:hover {
+    background-color: #f8f9fa;
+}
+
+.day.empty {
+    background-color: #f5f5f5;
+    cursor: default;
+}
+
+.day.selected {
+    background-color: #e3f2fd;
+    border-color: #90caf9;
+}
+
+.day.today {
+    border-color: #3498db;
+    font-weight: bold;
+}
+
+.day.has-appointments {
+    position: relative;
+}
+
+.day-number {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.appointment-indicator {
+    display: block;
+    width: 8px;
+    height: 8px;
+    background-color: #3498db;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+/* Citas */
+.appointment-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #3498db;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.appointment-item:hover {
+    background-color: #e9ecef;
+}
+
+.appointment-time {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.appointment-patient {
+    margin-top: 5px;
+}
+
+.appointment-treatment {
+    margin-top: 3px;
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.appointment-status {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 0.8em;
+    border-radius: 12px;
+    margin-top: 5px;
+}
+
+.status-pending {
+    background-color: #ffecb3;
+    color: #ff8f00;
+}
+
+.status-confirmed {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.status-cancelled {
+    background-color: #ffcdd2;
+    color: #c62828;
+}
+
+/* Solicitudes pendientes */
+.request-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 4px solid #e74c3c;
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.request-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.request-date {
+    font-weight: bold;
+}
+
+.request-name {
+    margin-top: 5px;
+}
+
+/* Historial de solicitudes */
+.history-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 4px solid #7f8c8d;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.history-status {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    margin-top: 3px;
+}
+
+.history-status.accepted {
+    background-color: rgba(46, 204, 113, 0.3);
+    color: #ecf0f1;
+}
+
+.history-status.rejected {
+    background-color: rgba(231, 76, 60, 0.3);
+    color: #ecf0f1;
+}
+
+.history-status.rescheduled {
+    background-color: rgba(241, 196, 15, 0.3);
+    color: #ecf0f1;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 600px;
+    max-width: 90%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-success {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+/* Mensajes de estado */
+.loading-message, .empty-message, .error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    min-height: 150px;
+}
+
+.loading-message i, .error-message i {
+    font-size: 2em;
+    margin-bottom: 15px;
+}
+
+.loading-message {
+    color: #3498db;
+}
+
+.empty-message {
+    color: #7f8c8d;
+}
+
+.error-message {
+    color: #e74c3c;
+} 

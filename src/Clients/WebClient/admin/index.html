@@ -4,65 +4,143 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Clínica Dental</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div class="login-container" id="loginForm">
-        <h1>Acceso Trabajadores</h1>
-        <form id="staffLoginForm">
-            <input type="text" id="username" placeholder="Usuario" required>
-            <input type="password" id="password" placeholder="Contraseña" required>
-            <button type="submit">Iniciar Sesión</button>
-        </form>
-    </div>
-
-    <div class="dashboard-container" id="dashboard" style="display: none;">
-        <header>
-            <h1>Panel de Gestión de Citas</h1>
-            <button id="logoutBtn">Cerrar Sesión</button>
-        </header>
-
-        <div class="requests-container">
-            <h2>Solicitudes Pendientes</h2>
-            <div id="pendingRequests"></div>
+    <div class="admin-panel">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Panel de Administración</h2>
+                <span id="userEmail"></span>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#dashboard" class="active">Dashboard</a>
+                <a href="#appointments">Gestionar Citas</a>
+                <a href="#patients">Pacientes</a>
+                <a href="#settings">Configuración</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="section-header" id="pendingRequestsHeader">
+                    <h3>Solicitudes Pendientes</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content" id="pendingRequests">
+                    <!-- Aquí se cargarán las solicitudes pendientes -->
+                    <div class="loading-message">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando solicitudes...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="section-header" id="requestHistoryHeader">
+                    <h3>Historial de Solicitudes</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="section-content" id="requestHistory">
+                    <!-- Aquí se cargará el historial de solicitudes -->
+                    <div class="loading-message">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando historial...</p>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="modal" id="requestModal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Gestionar Solicitud</h2>
-                <form id="updateRequestForm">
-                    <div class="form-group">
-                        <label>Paciente:</label>
-                        <input type="text" id="patientName" readonly>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Dashboard</h1>
+                <span id="selectedDate"></span>
+            </div>
+            
+            <div class="dashboard-widgets">
+                <div class="widget">
+                    <div class="widget-header">
+                        <h3>Calendario de Citas</h3>
                     </div>
-                    <div class="form-group">
-                        <label>Teléfono:</label>
-                        <input type="text" id="contactPhone" readonly>
+                    <div class="widget-content">
+                        <div id="adminCalendar">
+                            <!-- Aquí se cargará el calendario -->
+                            <div class="loading-message">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Cargando calendario...</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Fecha y Hora:</label>
-                        <input type="datetime-local" id="appointmentDateTime">
+                </div>
+                
+                <div class="widget">
+                    <div class="widget-header">
+                        <h3>Citas del Día</h3>
                     </div>
-                    <div class="form-group">
-                        <label>Tratamiento:</label>
-                        <input type="text" id="treatmentType" readonly>
+                    <div class="widget-content">
+                        <div id="dailyAppointmentsList">
+                            <!-- Aquí se cargarán las citas del día -->
+                            <div class="loading-message">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Seleccione una fecha para ver las citas...</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Notas:</label>
-                        <textarea id="notes"></textarea>
-                    </div>
-                    <div class="button-group">
-                        <button type="button" id="acceptBtn">Aceptar</button>
-                        <button type="button" id="rescheduleBtn">Reprogramar</button>
-                        <button type="button" id="rejectBtn">Rechazar</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-
+    
+    <!-- Modal para confirmar/cancelar citas -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalTitle">Detalles de la Cita</h2>
+            <div id="appointmentDetails"></div>
+            <div class="modal-buttons">
+                <button id="confirmAppointment" class="btn btn-success">Confirmar Cita</button>
+                <button id="cancelAppointment" class="btn btn-danger">Cancelar Cita</button>
+                <button id="closeModal" class="btn btn-secondary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Importante: Orden de carga de scripts -->
     <script src="js/auth.js"></script>
+    <script src="js/admin-calendar.js"></script>
     <script src="js/dashboard.js"></script>
+    
+    <!-- Script de debugging para DOM -->
+    <script>
+        // Este script verifica que todos los elementos DOM necesarios estén disponibles
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM completamente cargado');
+            
+            // Verificar contenedores principales
+            const containers = [
+                { id: 'adminCalendar', name: 'Calendario' },
+                { id: 'requestHistory', name: 'Historial de solicitudes' },
+                { id: 'dailyAppointmentsList', name: 'Lista de citas diarias' },
+                { id: 'pendingRequests', name: 'Solicitudes pendientes' }
+            ];
+            
+            containers.forEach(container => {
+                const element = document.getElementById(container.id);
+                if (element) {
+                    console.log(`✅ Contenedor '${container.name}' encontrado correctamente`);
+                } else {
+                    console.error(`❌ ERROR: Contenedor '${container.name}' (ID: ${container.id}) NO ENCONTRADO`);
+                }
+            });
+            
+            // Iniciar dashboard después de verificar elementos DOM
+            if (typeof initializeDashboard === 'function') {
+                console.log('✅ Función initializeDashboard disponible, iniciando...');
+                setTimeout(initializeDashboard, 100); // Pequeño retraso para asegurar que todo esté disponible
+            } else {
+                console.error('❌ ERROR: Función initializeDashboard no está disponible');
+            }
+        });
+    </script>
 </body>
 </html> 

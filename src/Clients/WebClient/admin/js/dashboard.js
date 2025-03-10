@@ -18,7 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Token encontrado, mostrando dashboard");
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
-        initializeDashboard();
+        
+        // Inicializar solo si no se ha hecho ya en auth.js
+        if (typeof adminCalendar === 'undefined' || adminCalendar === null) {
+            initializeDashboard();
+        }
     } else {
         console.log("No hay token, mostrando formulario de login");
     }
@@ -27,11 +31,30 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('logoutBtn').addEventListener('click', logout);
     
     // Configurar eventos para el modal de citas
-    document.querySelector('.close').addEventListener('click', closeModal);
-    document.getElementById('acceptBtn').addEventListener('click', () => updateAppointment('confirm'));
-    document.getElementById('toggleRescheduleBtn').addEventListener('click', toggleRescheduleMode);
-    document.getElementById('saveRescheduleBtn').addEventListener('click', () => updateAppointment('reschedule'));
-    document.getElementById('rejectBtn').addEventListener('click', () => updateAppointment('reject'));
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+    
+    const acceptBtn = document.getElementById('acceptBtn');
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', () => updateAppointment('confirm'));
+    }
+    
+    const toggleRescheduleBtn = document.getElementById('toggleRescheduleBtn');
+    if (toggleRescheduleBtn) {
+        toggleRescheduleBtn.addEventListener('click', toggleRescheduleMode);
+    }
+    
+    const saveRescheduleBtn = document.getElementById('saveRescheduleBtn');
+    if (saveRescheduleBtn) {
+        saveRescheduleBtn.addEventListener('click', () => updateAppointment('reschedule'));
+    }
+    
+    const rejectBtn = document.getElementById('rejectBtn');
+    if (rejectBtn) {
+        rejectBtn.addEventListener('click', () => updateAppointment('reject'));
+    }
     
     // Configurar el colapso del historial
     setupCollapsibleSections();
@@ -42,20 +65,68 @@ function initializeDashboard() {
     console.log("Inicializando dashboard...");
     
     try {
-        // Inicializar el calendario
+        // Verificar que los elementos del DOM existen antes de continuar
         const calendarContainer = document.getElementById('adminCalendar');
+        const requestHistoryContainer = document.getElementById('requestHistory');
+        const dailyAppointmentsContainer = document.getElementById('dailyAppointmentsList');
+        const pendingRequestsContainer = document.getElementById('pendingRequests');
+        
+        // Verificar que todos los contenedores necesarios existan
         if (!calendarContainer) {
-            console.error("Error: No se encontró el contenedor del calendario con ID 'adminCalendar'");
-        } else {
-            console.log("Inicializando calendario administrativo");
-            adminCalendar = new AdminCalendar('adminCalendar');
-            
-            // Configurar el callback para cuando se selecciona una fecha
-            adminCalendar.setOnDateSelected(loadAppointmentsForDate);
-            
-            // Inicializar el calendario y cargar las citas
-            adminCalendar.initialize();
+            console.error("Error crítico: No se encontró el contenedor del calendario con ID 'adminCalendar'");
+            alert("Error: No se encontró el contenedor del calendario");
+            return;
         }
+        
+        if (!requestHistoryContainer) {
+            console.error("Error crítico: No se encontró el contenedor del historial con ID 'requestHistory'");
+            alert("Error: No se encontró el contenedor del historial");
+            return;
+        }
+        
+        if (!dailyAppointmentsContainer) {
+            console.error("Error crítico: No se encontró el contenedor de citas diarias con ID 'dailyAppointmentsList'");
+            alert("Error: No se encontró el contenedor de citas diarias");
+            return;
+        }
+        
+        if (!pendingRequestsContainer) {
+            console.error("Error crítico: No se encontró el contenedor de solicitudes pendientes con ID 'pendingRequests'");
+            alert("Error: No se encontró el contenedor de solicitudes pendientes");
+            return;
+        }
+        
+        console.log("Todos los contenedores verificados correctamente");
+        
+        // Inicializar el calendario
+        console.log("Inicializando calendario administrativo...");
+        
+        // Verificar si la clase AdminCalendar está disponible
+        if (typeof AdminCalendar !== 'function') {
+            console.error("Error crítico: La clase AdminCalendar no está disponible. Asegúrate de que admin-calendar.js esté cargado.");
+            alert("Error: La clase AdminCalendar no está disponible");
+            return;
+        }
+        
+        // Crear instancia de calendario
+        adminCalendar = new AdminCalendar('adminCalendar');
+        
+        if (!adminCalendar) {
+            console.error("Error crítico: No se pudo crear la instancia de AdminCalendar");
+            alert("Error: No se pudo crear la instancia de calendario");
+            return;
+        }
+        
+        console.log("Instancia de calendario creada:", adminCalendar);
+        
+        // Configurar el callback para cuando se selecciona una fecha
+        adminCalendar.setOnDateSelected(function(date) {
+            console.log("Fecha seleccionada:", date);
+            loadAppointmentsForDate(date);
+        });
+        
+        // Inicializar el calendario y cargar las citas
+        adminCalendar.initialize();
         
         // Cargar solicitudes pendientes
         loadPendingRequests();
@@ -66,62 +137,81 @@ function initializeDashboard() {
         // Configurar conexión WebSocket
         setupWebSocketConnection();
         
+        // Configurar las secciones colapsables
+        setupCollapsibleSections();
+        
         console.log("Dashboard inicializado correctamente");
     } catch (error) {
-        console.error("Error al inicializar el dashboard:", error);
+        console.error("Error fatal al inicializar el dashboard:", error);
+        alert("Error al inicializar el panel de administración: " + error.message);
     }
 }
 
-// Configurar las secciones colapsables
+// Configurar secciones colapsables
 function setupCollapsibleSections() {
     console.log("Configurando secciones colapsables...");
-    const collapsibles = document.querySelectorAll('.collapsible');
     
-    collapsibles.forEach((section, index) => {
-        console.log(`Configurando sección colapsable ${index + 1}`);
+    try {
+        // Obtener referencias a los headers y contenidos
+        const requestHistoryHeader = document.getElementById('requestHistoryHeader');
+        const requestHistoryContent = document.getElementById('requestHistory');
+        const pendingRequestsHeader = document.getElementById('pendingRequestsHeader');
+        const pendingRequestsContent = document.getElementById('pendingRequests');
         
-        // Inicialmente colapsar las secciones
-        section.classList.add('collapsed');
-        
-        const header = section.querySelector('.collapsible-header');
-        if (!header) {
-            console.error(`No se encontró el encabezado para la sección colapsable ${index + 1}`);
+        // Verificar que existan los elementos
+        if (!requestHistoryHeader || !requestHistoryContent) {
+            console.error("Error: No se encontró la sección de historial de solicitudes");
             return;
         }
         
-        const content = section.querySelector('.collapsible-content');
-        if (!content) {
-            console.error(`No se encontró el contenido para la sección colapsable ${index + 1}`);
+        if (!pendingRequestsHeader || !pendingRequestsContent) {
+            console.error("Error: No se encontró la sección de solicitudes pendientes");
             return;
         }
         
-        // Aplicar estilo para ocultar inicialmente
-        content.style.display = 'none';
+        console.log("Elementos de secciones colapsables encontrados correctamente");
         
-        header.addEventListener('click', () => {
-            console.log(`Clic en el encabezado de la sección ${index + 1}`);
-            section.classList.toggle('collapsed');
+        // Configurar evento para historial de solicitudes
+        requestHistoryHeader.addEventListener('click', function() {
+            console.log("Clic en header de historial de solicitudes");
+            this.classList.toggle('active');
             
-            // Mostrar u ocultar el contenido
-            if (section.classList.contains('collapsed')) {
-                console.log("Colapsando la sección");
-                content.style.display = 'none';
+            if (this.classList.contains('active')) {
+                console.log("Expandiendo historial de solicitudes");
+                requestHistoryContent.classList.add('active');
+                requestHistoryContent.style.maxHeight = requestHistoryContent.scrollHeight + "px";
             } else {
-                console.log("Expandiendo la sección");
-                content.style.display = 'block';
-            }
-            
-            // Rotar el icono si es necesario
-            const icon = header.querySelector('.toggle-icon');
-            if (icon) {
-                if (section.classList.contains('collapsed')) {
-                    icon.style.transform = 'rotate(-90deg)';
-                } else {
-                    icon.style.transform = 'rotate(0deg)';
-                }
+                console.log("Colapsando historial de solicitudes");
+                requestHistoryContent.classList.remove('active');
+                requestHistoryContent.style.maxHeight = null;
             }
         });
-    });
+        
+        // Configurar evento para solicitudes pendientes
+        pendingRequestsHeader.addEventListener('click', function() {
+            console.log("Clic en header de solicitudes pendientes");
+            this.classList.toggle('active');
+            
+            if (this.classList.contains('active')) {
+                console.log("Expandiendo solicitudes pendientes");
+                pendingRequestsContent.classList.add('active');
+                pendingRequestsContent.style.maxHeight = pendingRequestsContent.scrollHeight + "px";
+            } else {
+                console.log("Colapsando solicitudes pendientes");
+                pendingRequestsContent.classList.remove('active');
+                pendingRequestsContent.style.maxHeight = null;
+            }
+        });
+        
+        // Inicialmente, expandir solicitudes pendientes (importante)
+        pendingRequestsHeader.classList.add('active');
+        pendingRequestsContent.classList.add('active');
+        pendingRequestsContent.style.maxHeight = pendingRequestsContent.scrollHeight + "px";
+        
+        console.log("Secciones colapsables configuradas correctamente");
+    } catch (error) {
+        console.error("Error al configurar secciones colapsables:", error);
+    }
 }
 
 // Configurar conexión WebSocket
@@ -259,69 +349,128 @@ function playNotificationSound() {
 async function loadPendingRequests() {
     console.log("Cargando solicitudes pendientes...");
     try {
+        // Verificar que el contenedor existe
+        const container = document.getElementById('pendingRequests');
+        if (!container) {
+            console.error("Error: No se encontró el contenedor de solicitudes pendientes con ID 'pendingRequests'");
+            return;
+        }
+
+        // Mostrar mensaje de carga
+        container.innerHTML = '<p class="loading-message">Cargando solicitudes pendientes...</p>';
+        
         const token = localStorage.getItem('staffToken');
         if (!token) {
             console.error("Error: No hay token de autenticación");
+            container.innerHTML = '<p class="empty-message error-message">Error de autenticación</p>';
             return;
         }
         
-        // Usar URL absoluta
-        const apiUrl = window.location.origin + '/api';
-        const url = `${apiUrl}/Staff/pending`;
+        // Usar URL de API global
+        const url = `${API_URL}/Staff/pending`;
         console.log(`Realizando petición a: ${url}`);
         
         const response = await fetch(url, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
             }
         });
 
         if (response.ok) {
             console.log("Solicitudes pendientes recibidas correctamente");
             const appointments = await response.json();
-            console.log(`Recibidas ${appointments.length} solicitudes pendientes`);
+            console.log(`Recibidas ${appointments.length} solicitudes pendientes:`, appointments);
             displayPendingRequests(appointments);
         } else {
             console.error(`Error al cargar solicitudes pendientes: ${response.status} ${response.statusText}`);
-            throw new Error(`Error al cargar solicitudes pendientes: ${response.status} ${response.statusText}`);
+            container.innerHTML = `<p class="empty-message error-message">Error ${response.status}: ${response.statusText}</p>`;
         }
     } catch (error) {
         console.error("Error al cargar solicitudes pendientes:", error);
         const container = document.getElementById('pendingRequests');
         if (container) {
-            container.innerHTML = '<p class="empty-message error-message">Error al cargar solicitudes</p>';
+            container.innerHTML = `<p class="empty-message error-message">Error: ${error.message}</p>`;
         }
     }
 }
 
 // Mostrar las solicitudes pendientes en el panel lateral
 function displayPendingRequests(appointments) {
+    console.log("Mostrando solicitudes pendientes...");
+    
     const container = document.getElementById('pendingRequests');
+    if (!container) {
+        console.error("Error: No se encontró el contenedor de solicitudes pendientes");
+        return;
+    }
+    
     container.innerHTML = '';
+
+    if (!appointments || appointments.length === 0) {
+        console.log("No hay solicitudes pendientes para mostrar");
+        container.innerHTML = '<p class="empty-message">No hay solicitudes pendientes</p>';
+        return;
+    }
+
+    console.log(`Mostrando ${appointments.length} solicitudes pendientes`);
 
     // Filtrar citas pendientes (no confirmadas)
     const pendingAppointments = appointments.filter(appointment => !appointment.isConfirmed);
 
     if (pendingAppointments.length === 0) {
+        console.log("No hay solicitudes pendientes después del filtrado");
         container.innerHTML = '<p class="empty-message">No hay solicitudes pendientes</p>';
         return;
     }
 
-    pendingAppointments.forEach(appointment => {
-        const card = document.createElement('div');
-        card.className = 'request-card';
-        const appointmentDate = new Date(appointment.appointmentDateTime);
+    // Para depuración
+    console.log(`Hay ${pendingAppointments.length} solicitudes pendientes después del filtrado:`, pendingAppointments);
+
+    // Ordenar por fecha, las más recientes primero
+    pendingAppointments.sort((a, b) => 
+        new Date(a.appointmentDateTime).getTime() - new Date(b.appointmentDateTime).getTime()
+    );
+
+    // Crear elementos para cada solicitud pendiente
+    pendingAppointments.forEach((appointment, index) => {
+        console.log(`Procesando solicitud pendiente ${index + 1}:`, appointment);
         
-        card.innerHTML = `
-            <div class="status-badge status-pending">Pendiente</div>
-            <h3>${appointment.patientName}</h3>
-            <p>Fecha: ${appointmentDate.toLocaleDateString()}</p>
-            <p>Hora: ${appointmentDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</p>
-            <p>Tratamiento: ${appointment.treatmentType}</p>
-        `;
-        card.onclick = () => openAppointmentModal(appointment);
-        container.appendChild(card);
+        try {
+            const appointmentDate = new Date(appointment.appointmentDateTime);
+            if (isNaN(appointmentDate.getTime())) {
+                console.warn(`Fecha inválida para la solicitud ${index + 1}: ${appointment.appointmentDateTime}`);
+                return;
+            }
+            
+            const card = document.createElement('div');
+            card.className = 'request-card';
+            
+            // Formatear fecha y hora
+            const dateStr = appointmentDate.toLocaleDateString('es-ES');
+            const timeStr = appointmentDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+            
+            card.innerHTML = `
+                <div class="status-badge status-pending">Pendiente</div>
+                <h3>${appointment.patientName || 'Sin nombre'}</h3>
+                <p class="appointment-date">Fecha: ${dateStr}</p>
+                <p class="appointment-time">Hora: ${timeStr}</p>
+                <p class="appointment-treatment">Tratamiento: ${appointment.treatmentType || appointment.treatment || 'No especificado'}</p>
+            `;
+            
+            // Añadir evento de clic para abrir el modal
+            card.addEventListener('click', function() {
+                openAppointmentModal(appointment);
+            });
+            
+            container.appendChild(card);
+        } catch (error) {
+            console.error(`Error al procesar solicitud pendiente ${index + 1}:`, error);
+        }
     });
+    
+    console.log("Solicitudes pendientes mostradas correctamente");
 }
 
 // Cargar citas para una fecha específica
@@ -329,77 +478,124 @@ async function loadAppointmentsForDate(date) {
     console.log(`Cargando citas para la fecha: ${date.toISOString().split('T')[0]}`);
     
     try {
+        // Verificar que el contenedor existe
+        const container = document.getElementById('dailyAppointmentsList');
+        if (!container) {
+            console.error("Error: No se encontró el contenedor de citas diarias con ID 'dailyAppointmentsList'");
+            return;
+        }
+
+        // Mostrar mensaje de carga
+        container.innerHTML = '<p class="loading-message">Cargando citas...</p>';
+        
         const token = localStorage.getItem('staffToken');
         if (!token) {
             console.error("Error: No hay token de autenticación");
+            container.innerHTML = '<p class="empty-message error-message">Error de autenticación</p>';
             return;
         }
         
         // Formatear la fecha para la URL
         const dateString = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
         
-        // Usar URL absoluta
-        const apiUrl = window.location.origin + '/api';
-        const url = `${apiUrl}/Staff/appointments/date/${dateString}`;
+        // Usar URL de API global
+        const url = `${API_URL}/Staff/appointments/date/${dateString}`;
         console.log(`Realizando petición a: ${url}`);
         
         const response = await fetch(url, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
             }
         });
 
         if (response.ok) {
             console.log("Citas diarias recibidas correctamente");
             const appointments = await response.json();
-            console.log(`Recibidas ${appointments.length} citas para el día ${dateString}`);
+            console.log(`Recibidas ${appointments.length} citas para el día ${dateString}:`, appointments);
             displayDailyAppointments(appointments, date);
         } else {
             console.error(`Error al cargar las citas: ${response.status} ${response.statusText}`);
-            throw new Error(`Error al cargar las citas del día: ${response.status} ${response.statusText}`);
+            container.innerHTML = `<p class="empty-message error-message">Error ${response.status}: ${response.statusText}</p>`;
         }
     } catch (error) {
         console.error('Error al cargar citas diarias:', error);
-        document.getElementById('dailyAppointmentsList').innerHTML = 
-            '<p class="empty-message error-message">Error al cargar las citas del día</p>';
+        const container = document.getElementById('dailyAppointmentsList');
+        if (container) {
+            container.innerHTML = `<p class="empty-message error-message">Error: ${error.message}</p>`;
+        }
     }
 }
 
 // Mostrar las citas diarias
 function displayDailyAppointments(appointments, date) {
+    console.log("Mostrando citas diarias...");
+    
     const container = document.getElementById('dailyAppointmentsList');
+    if (!container) {
+        console.error("Error: No se encontró el contenedor de citas diarias");
+        return;
+    }
+    
     container.innerHTML = '';
 
-    if (appointments.length === 0) {
+    if (!appointments || appointments.length === 0) {
+        console.log("No hay citas programadas para este día");
         container.innerHTML = '<p class="empty-message">No hay citas programadas para este día</p>';
         return;
     }
 
+    console.log(`Mostrando ${appointments.length} citas para el día seleccionado`);
+
     // Ordenar citas por hora
-    appointments.sort((a, b) => 
+    const sortedAppointments = [...appointments].sort((a, b) => 
         new Date(a.appointmentDateTime).getTime() - new Date(b.appointmentDateTime).getTime()
     );
 
-    appointments.forEach(appointment => {
-        const appointmentDate = new Date(appointment.appointmentDateTime);
-        const item = document.createElement('div');
+    // Para depuración
+    console.log("Citas ordenadas:", sortedAppointments);
+
+    // Crear elementos para cada cita
+    sortedAppointments.forEach((appointment, index) => {
+        console.log(`Procesando cita ${index + 1}:`, appointment);
         
-        item.className = `daily-appointment-item${appointment.isConfirmed ? '' : ' pending'}`;
-        
-        item.innerHTML = `
-            <div class="daily-appointment-time">
-                ${appointmentDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
-                <span class="status-badge status-${appointment.isConfirmed ? 'confirmed' : 'pending'}">
-                    ${appointment.isConfirmed ? 'Confirmada' : 'Pendiente'}
-                </span>
-            </div>
-            <div class="daily-appointment-patient">${appointment.patientName}</div>
-            <div class="daily-appointment-treatment">${appointment.treatmentType}</div>
-        `;
-        
-        item.onclick = () => openAppointmentModal(appointment);
-        container.appendChild(item);
+        try {
+            const appointmentDate = new Date(appointment.appointmentDateTime);
+            if (isNaN(appointmentDate.getTime())) {
+                console.warn(`Fecha inválida para la cita ${index + 1}: ${appointment.appointmentDateTime}`);
+                return;
+            }
+            
+            const item = document.createElement('div');
+            item.className = `daily-appointment-item${appointment.isConfirmed ? '' : ' pending'}`;
+            
+            // Formatear la hora
+            const timeStr = appointmentDate.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+            
+            item.innerHTML = `
+                <div class="daily-appointment-time">
+                    ${timeStr}
+                    <span class="status-badge status-${appointment.isConfirmed ? 'confirmed' : 'pending'}">
+                        ${appointment.isConfirmed ? 'Confirmada' : 'Pendiente'}
+                    </span>
+                </div>
+                <div class="daily-appointment-patient">${appointment.patientName || 'Sin nombre'}</div>
+                <div class="daily-appointment-treatment">${appointment.treatmentType || appointment.treatment || 'No especificado'}</div>
+            `;
+            
+            // Añadir evento de clic para abrir el modal
+            item.addEventListener('click', function() {
+                openAppointmentModal(appointment);
+            });
+            
+            container.appendChild(item);
+        } catch (error) {
+            console.error(`Error al procesar cita ${index + 1}:`, error);
+        }
     });
+    
+    console.log("Citas diarias mostradas correctamente");
 }
 
 // Cargar historial de solicitudes
@@ -412,14 +608,25 @@ async function loadRequestHistory() {
             return;
         }
         
-        // Usar la URL absoluta
-        const apiUrl = window.location.origin + '/api';
-        const url = `${apiUrl}/Staff/history`;
+        // Verificar si el contenedor existe antes de intentar cargar los datos
+        const container = document.getElementById('requestHistory');
+        if (!container) {
+            console.error("Error: No se encontró el contenedor de historial con ID 'requestHistory'");
+            return;
+        }
+
+        // Mostrar mensaje de carga
+        container.innerHTML = '<p class="loading-message">Cargando historial...</p>';
+        
+        // Usar la URL API definida globalmente
+        const url = `${API_URL}/Staff/history`;
         console.log(`Realizando petición al endpoint de historial: ${url}`);
         
         const response = await fetch(url, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
             }
         });
 
@@ -430,14 +637,14 @@ async function loadRequestHistory() {
             displayRequestHistory();
         } else {
             console.error(`Error al cargar el historial: ${response.status} ${response.statusText}`);
-            throw new Error(`Error al cargar el historial de solicitudes: ${response.status} ${response.statusText}`);
+            container.innerHTML = `<p class="empty-message error-message">Error ${response.status}: ${response.statusText}</p>`;
         }
     } catch (error) {
         console.error("Error al cargar el historial de solicitudes:", error);
         // Mostrar mensaje de error en la UI
         const container = document.getElementById('requestHistory');
         if (container) {
-            container.innerHTML = '<p class="empty-message error-message">Error al cargar el historial</p>';
+            container.innerHTML = `<p class="empty-message error-message">Error: ${error.message}</p>`;
         }
     }
 }
@@ -467,7 +674,16 @@ function displayRequestHistory() {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
+    // Para depuración
+    console.log("Historial ordenado:", sortedHistory);
+
+    // Crear elementos para cada item del historial
     sortedHistory.forEach((item, index) => {
+        if (!item) {
+            console.warn(`Elemento ${index} es nulo o indefinido`);
+            return;
+        }
+        
         console.log(`Procesando elemento de historial ${index + 1}:`, item);
         
         // Verificar si el elemento tiene las propiedades necesarias
@@ -476,11 +692,12 @@ function displayRequestHistory() {
             return; // Saltar este elemento
         }
         
+        // Crear el elemento de historial
         const historyItem = document.createElement('div');
-        let statusClass = '';
         
-        // Normalizar la acción a minúsculas para la comparación
-        const action = item.action.toLowerCase();
+        // Determinar la clase CSS según el tipo de acción
+        let statusClass = '';
+        const action = (item.action || '').toLowerCase();
         
         if (action.includes('aceptada') || action.includes('accepted')) {
             statusClass = 'accepted';
@@ -494,29 +711,32 @@ function displayRequestHistory() {
         
         historyItem.className = `history-item ${statusClass}`;
         
-        // Asegurarse de que timestamp sea una fecha válida
+        // Formatear la fecha
         let formattedDate = 'Fecha desconocida';
         let formattedTime = '';
         
         try {
             const date = new Date(item.timestamp);
             if (!isNaN(date.getTime())) {
-                formattedDate = date.toLocaleDateString();
+                formattedDate = date.toLocaleDateString('es-ES');
                 formattedTime = date.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+            } else {
+                console.warn(`Fecha inválida: ${item.timestamp}`);
             }
         } catch (error) {
             console.error(`Error al formatear la fecha del elemento ${index + 1}:`, error);
         }
         
+        // Crear HTML del elemento
         historyItem.innerHTML = `
             <div class="history-item-header">
-                <span>${item.patientName || 'Paciente sin nombre'}</span>
+                <span class="patient-name">${item.patientName || 'Paciente sin nombre'}</span>
                 <span class="history-item-date">${formattedDate} ${formattedTime}</span>
             </div>
             <div class="history-item-status">
-                <span>Pendiente</span>
+                <span class="status-before">Pendiente</span>
                 <span class="status-arrow">→</span>
-                <span>${item.action}</span>
+                <span class="status-after">${item.action}</span>
             </div>
         `;
         
@@ -751,6 +971,12 @@ function showActionNotification(message) {
 
 // Cerrar sesión
 function logout() {
+    console.log("Cerrando sesión...");
     localStorage.removeItem('staffToken');
-    window.location.reload();
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'none';
+    // Limpiar datos
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+        webSocket.close();
+    }
 } 
