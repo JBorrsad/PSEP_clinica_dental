@@ -9,3 +9,4 @@ C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.M
 C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\refint\Common.Models.dll
 C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.pdb
 C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\ref\Common.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Common\Models\obj\Debug\net8.0\Common.Models.sourcelink.json

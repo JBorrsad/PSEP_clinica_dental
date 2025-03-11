@@ -14,68 +14,26 @@ namespace Clients.ConsoleClient.UI
 
         public async Task DisplayMainMenuAsync()
         {
-            bool exit = false;
-            while (!exit)
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=======================================================");
+            Console.WriteLine("       MONITOR DE OPERACIONES - CLÍNICA DENTAL         ");
+            Console.WriteLine("=======================================================");
+            Console.ResetColor();
+            Console.WriteLine("\nEste cliente muestra las operaciones CRUD realizadas en tiempo real.");
+            Console.WriteLine("Las notificaciones aparecerán automáticamente cuando se realicen cambios desde la aplicación web.");
+            Console.WriteLine("\nConectado al servidor de notificaciones y listo para recibir eventos.");
+            Console.WriteLine("Presione Ctrl+C para salir del monitor.");
+            
+            // Mantener la aplicación corriendo indefinidamente hasta que el usuario la cierre
+            try
             {
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("=======================================================");
-                Console.WriteLine("       SISTEMA DE GESTIÓN DE CITAS - CLÍNICA DENTAL    ");
-                Console.WriteLine("=======================================================");
-                Console.ResetColor();
-                Console.WriteLine("\nSeleccione una opción:");
-                Console.WriteLine("1. Ver todas las citas");
-                Console.WriteLine("2. Ver horarios disponibles");
-                Console.WriteLine("3. Reservar una cita");
-                Console.WriteLine("4. Ver detalles de una cita");
-                Console.WriteLine("5. Cancelar una cita");
-                Console.WriteLine("0. Salir");
-                Console.Write("\nOpción: ");
-
-                string input = Console.ReadLine();
-
-                try
-                {
-                    switch (input)
-                    {
-                        case "1":
-                            await _apiClient.ViewAllAppointmentsAsync();
-                            break;
-                        case "2":
-                            await _apiClient.ViewAvailableSlotsAsync();
-                            break;
-                        case "3":
-                            await _apiClient.BookAppointmentAsync();
-                            break;
-                        case "4":
-                            await _apiClient.ViewAppointmentDetailsAsync();
-                            break;
-                        case "5":
-                            await _apiClient.CancelAppointmentAsync();
-                            break;
-                        case "0":
-                            exit = true;
-                            break;
-                        default:
-                            Console.WriteLine("Opción no válida. Pulse cualquier tecla para continuar...");
-                            Console.ReadKey();
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: {ex.Message}");
-                    Console.ResetColor();
-                    Console.WriteLine("Pulse cualquier tecla para continuar...");
-                    Console.ReadKey();
-                }
-
-                if (!exit)
-                {
-                    Console.WriteLine("\nPulse cualquier tecla para continuar...");
-                    Console.ReadKey();
-                }
+                // Simple bucle de espera que mantiene la aplicación en ejecución
+                await Task.Delay(-1); // Esto esperará indefinidamente
+            }
+            catch (TaskCanceledException)
+            {
+                // Esto ocurrirá cuando se cierre la aplicación
             }
         }
     }

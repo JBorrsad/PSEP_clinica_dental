@@ -6,71 +6,116 @@
   <img src="https://img.shields.io/badge/Licencia-MIT-green" alt="Licencia">
 </p>
 
-![Arquitectura del Sistema](https://imgur.com/placeholder.png)
-*Diagrama de la arquitectura del sistema (por favor, reemplaza este placeholder con tu diagrama real)*
-
 ---
 
 ## 📋 Índice
 
 1. [Inicio Rápido](#inicio-rápido)
-2. [Introducción](#introducción)
-3. [Arquitectura del Sistema](#arquitectura-del-sistema)
-4. [Estructura del Proyecto](#estructura-del-proyecto)
-5. [Funcionalidades Principales](#funcionalidades-principales)
+2. [Video Demostración](#video-demostración)
+3. [Introducción](#introducción)
+4. [Arquitectura del Sistema](#arquitectura-del-sistema)
+5. [Estructura del Proyecto](#estructura-del-proyecto)
+6. [Funcionalidades Principales](#funcionalidades-principales)
    - [Comunicaciones por Sockets](#comunicaciones-por-sockets-ra3)
    - [API REST](#api-rest-ra4)
    - [Seguridad](#seguridad-ra5)
-6. [Clientes Implementados](#clientes)
-7. [Panel de Administración](#panel-de-administración)
-8. [Persistencia e Integración con Firebase](#persistencia-e-integración-con-firebase)
-9. [Ejecución del Proyecto](#ejecución-del-proyecto)
-10. [Demo en Video](#demo-en-video)
-11. [Conclusiones](#conclusiones)
-12. [Deudas Técnicas](#deudas-técnicas)
+7. [Clientes Implementados](#clientes)
+8. [Panel de Administración](#panel-de-administración)
+9. [Persistencia e Integración con Firebase](#persistencia-e-integración-con-firebase)
+10. [Tests y Pruebas Automatizadas](#tests-y-pruebas-automatizadas)
+11. [Scripts de Utilidad](#scripts-de-utilidad)
+12. [Ejecución del Proyecto](#ejecución-del-proyecto)
+13. [Demo en Video](#demo-en-video)
+14. [Conclusiones](#conclusiones)
+15. [Deudas Técnicas](#deudas-técnicas)
+16. [Documentación Adicional](#documentación-adicional)
 
 ---
 
 ## Inicio Rápido
 
-Para iniciar rápidamente todo el sistema, he creado un script PowerShell que inicializa todos los componentes con un solo comando:
+Para empezar a utilizar el sistema de forma rápida y sencilla, he desarrollado varios scripts de utilidad:
+
+### Iniciar el Sistema Completo
+
+El script principal `iniciar_clinic_app.ps1` lo hace todo por ti con un solo comando:
 
 ```powershell
 .\iniciar_clinic_app.ps1
 ```
 
-Este script realiza las siguientes operaciones:
-1. Compila la solución completa
-2. Inicia el servidor API en una ventana separada
-3. Abre automáticamente el calendario para pacientes en el navegador (http://localhost:5021/index.html)
-4. Abre el panel de administración en otra pestaña (http://localhost:5021/admin/index.html)
-5. Inicia el monitor de operaciones CRUD en una ventana de consola separada
+Este script:
+1. **Detiene cualquier instancia** previa del servidor que pudiera estar ejecutándose
+2. **Compila la solución completa** asegurando que todo el código esté actualizado
+3. **Inicia el servidor API** en una ventana separada de PowerShell
+4. **Abre automáticamente dos páginas en el navegador**:
+   - El **calendario para pacientes** (http://localhost:5021/index.html)
+   - El **panel de administración** (http://localhost:5021/admin/login.html)
+5. Si tienes Chrome instalado, abrirá ambas páginas como pestañas en la misma ventana
 
-Para acceder al panel de administración, usa las siguientes credenciales:
-- **Usuario**: admin
-- **Contraseña**: admin
+> **Nota**: Para acceder al panel de administración, usa las credenciales:
+> - **Usuario**: admin
+> - **Contraseña**: admin
 
-Este script facilita enormemente el proceso de desarrollo y pruebas, permitiendo ver todos los componentes en funcionamiento simultáneamente.
+### Generar Informe de API
 
-Aquí hay un fragmento relevante del script:
+También puedes generar un informe detallado de la API con el script:
 
 ```powershell
-# Iniciar el servidor en una nueva ventana
-Write-ColorOutput "Green" "Iniciando servidor API..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Write-Host 'Iniciando servidor API...' -ForegroundColor Cyan; Set-Location '$($pwd.Path)\$serverPath'; dotnet run"
-
-# Esperar a que el servidor inicie
-Write-ColorOutput "Yellow" "Esperando 5 segundos para que el servidor inicie..."
-Start-Sleep -Seconds 5
-
-# Abrir el navegador con la aplicación web cliente (calendario)
-Write-ColorOutput "Green" "Abriendo cliente web (calendario) en el navegador..."
-Start-Process $webClientUrl
-
-# Abrir el panel de administración en otra pestaña
-Write-ColorOutput "Green" "Abriendo panel de administración en el navegador..."
-Start-Process $adminUrl
+.\api-report.ps1
 ```
+
+Este script:
+1. Verifica si el servidor está activo (aunque funciona incluso si no lo está)
+2. Utiliza los scripts del directorio `report` para realizar pruebas en todos los endpoints
+3. Genera un archivo HTML con información detallada sobre cada endpoint
+4. Abre automáticamente el informe en tu navegador predeterminado
+
+El informe es extremadamente útil para:
+- Documentar la API completa
+- Verificar qué endpoints están funcionando correctamente
+- Comprobar los formatos de respuesta
+- Ver ejemplos de solicitudes y respuestas
+
+### Ejecución de pruebas completas
+
+Si quieres ejecutar todas las pruebas del sistema:
+
+```powershell
+.\src\Tools\Scripts\run-all-tests.ps1
+```
+
+Este comando ejecutará las pruebas de API, citas y WebSockets, mostrando un informe completo de los resultados.
+
+Estos scripts facilitan enormemente el proceso de desarrollo y pruebas, permitiendo ver todos los componentes en funcionamiento simultáneamente.
+
+## Video Demostración
+
+He creado un video demostrativo donde muestro el funcionamiento completo del sistema con todos los componentes interactuando en tiempo real:
+
+[![Demo del Sistema de Gestión de Citas](https://img.youtube.com/vi/Gl34w1-8Edc/0.jpg)](https://youtu.be/Gl34w1-8Edc)
+
+### Lo que se muestra en el video:
+
+- **Funcionamiento simultáneo** de ambos tipos de clientes:
+  - Cliente para pacientes que quieren solicitar una cita
+  - Panel de administración para el personal de la clínica
+
+- **Operaciones en tiempo real**:
+  - Creación de una nueva cita desde la perspectiva del paciente
+  - Visualización inmediata de la cita en el panel de administración
+  - Confirmación de citas pendientes por parte del personal
+  - Sincronización automática entre todos los componentes
+
+- **Replicación en Firebase**:
+  - Demostración de cómo los datos se actualizan instantáneamente en Firebase Realtime Database
+  - Verificación de la persistencia en múltiples fuentes
+
+- **Notificaciones**:
+  - Sistema de notificaciones en tiempo real mediante WebSockets
+  - Alertas visuales cuando se producen cambios en las citas
+
+Esta demostración ilustra perfectamente cómo todos los componentes del sistema interactúan entre sí, proporcionando una experiencia fluida tanto para pacientes como para el personal de la clínica.
 
 ## Introducción
 
@@ -84,11 +129,6 @@ He desarrollado esta aplicación como parte de mi aprendizaje en el módulo de P
 
 ## Arquitectura del Sistema
 
-El sistema sigue una arquitectura cliente-servidor con varios componentes que se comunican entre sí:
-
-![Diagrama de Arquitectura](https://imgur.com/placeholder.png)
-*Imagen ilustrativa de la arquitectura (reemplazar con diagrama real)*
-
 - **Clientes**: Tanto web como consola, que permiten a pacientes y personal gestionar citas
 - **Servidor API**: Procesa las peticiones y gestiona la lógica de negocio
 - **Servidor de Notificaciones**: Envía actualizaciones en tiempo real mediante sockets
@@ -101,27 +141,39 @@ El proyecto ha sido completamente estructurado siguiendo principios de arquitect
 
 ```
 PSEP-Proyecto/
+├── report/                              # Directorio para informes generados
+│   ├── api-report.html                  # Informe generado sobre los endpoints de la API
+│   └── generate-api-report.ps1          # Script para generar el informe
 ├── src/
-│   ├── Server/                            # Servidor (API, Sockets, Seguridad)
-│   │   ├── API/                           # API REST (RA4)
-│   │   │   ├── Controllers/               # Controladores REST
-│   │   │   ├── Middleware/                # Middleware de autenticación y logging
-│   │   │   └── Program.cs                 # Configuración de la API
-│   │   ├── Socket/                        # Servidores de Socket (RA3)
-│   │   │   └── NotificationService.cs     # Servicio de notificaciones en tiempo real
-│   │   ├── Security/                      # Seguridad (RA5)
-│   │   │   ├── Encryption/                # Cifrado asimétrico
-│   │   │   ├── Authentication/            # Autenticación JWT
-│   │   │   └── Logging/                   # Registro unidireccional
-│   │   ├── Data/                          # Capa de datos
-│   │   │   ├── Json/                      # Almacenamiento en JSON
-│   │   │   └── Firebase/                  # Replicación en Firebase
-│   │   └── Models/                        # Modelos de dominio
-│   ├── Clients/                           # Clientes
-│   │   ├── ConsoleClient/                 # Cliente de consola (antes asyncClient)
-│   │   └── WebClient/                     # Cliente web (antes en API/wwwroot)
-│   └── Common/                            # Código compartido
-└── docs/                                  # Documentación
+│   ├── Server/                          # Servidor (API, Sockets, Seguridad)
+│   │   ├── API/                         # API REST (RA4)
+│   │   │   ├── Controllers/             # Controladores REST
+│   │   │   ├── Middleware/              # Middleware de autenticación y logging
+│   │   │   └── Program.cs               # Configuración de la API
+│   │   ├── Socket/                      # Servidores de Socket (RA3)
+│   │   │   └── NotificationService.cs   # Servicio de notificaciones en tiempo real
+│   │   ├── Security/                    # Seguridad (RA5)
+│   │   │   ├── Encryption/              # Cifrado asimétrico
+│   │   │   ├── Authentication/          # Autenticación JWT
+│   │   │   └── Logging/                 # Registro unidireccional
+│   │   ├── Data/                        # Capa de datos
+│   │   │   ├── Json/                    # Almacenamiento en JSON
+│   │   │   └── Firebase/                # Replicación en Firebase
+│   │   └── Models/                      # Modelos de dominio
+│   ├── Clients/                         # Clientes
+│   │   ├── ConsoleClient/               # Cliente de consola (para monitoreo en tiempo real)
+│   │   └── WebClient/                   # Cliente web (calendario y panel admin)
+│   ├── Tests/                           # Tests y pruebas automatizadas
+│   │   ├── API/                         # Tests de la API REST
+│   │   ├── Appointments/                # Tests de funcionalidades de citas
+│   │   └── WebSocket/                   # Tests de comunicación por sockets
+│   ├── Tools/                           # Herramientas y utilidades
+│   │   └── Scripts/                     # Scripts auxiliares para mantenimiento
+│   ├── Common/                          # Código compartido
+│   └── ClinicaDental.sln                # Solución completa del proyecto
+├── iniciar_clinic_app.ps1               # Script principal para iniciar todos los componentes
+├── api-report.ps1                       # Script para generar y abrir el informe de API
+└── docs/                                # Documentación adicional
 ```
 
 Esta estructura me ha permitido mantener el código organizado y facilitar la implementación de nuevas funcionalidades.
@@ -651,6 +703,86 @@ public async Task<IActionResult> GetAppointmentHistory()
 
 Esta sincronización garantiza que, incluso si hay problemas de conexión, los datos eventualmente se sincronizarán cuando la conexión se restablezca.
 
+## Tests y Pruebas Automatizadas
+
+He desarrollado un conjunto completo de pruebas automatizadas para verificar el correcto funcionamiento de todos los componentes del sistema:
+
+### Tests de API
+
+En el directorio `src/Tests/API` se encuentran scripts de prueba para verificar el funcionamiento de la API REST:
+
+- **test-api-complete.ps1**: Prueba exhaustiva de todos los endpoints de la API
+- **test-api-simple.ps1**: Prueba básica de los endpoints principales
+- **test-model.ps1**: Verifica la integridad de los modelos de datos
+- **test-login.ps1**: Prueba específica para la autenticación
+- **test-api-admin.ps1**: Verifica los endpoints del panel de administración
+
+Estos tests validan la correcta respuesta de los endpoints, los códigos de estado HTTP, y la estructura de los datos devueltos.
+
+### Tests de Citas
+
+En el directorio `src/Tests/Appointments` hay scripts específicos para probar las funcionalidades relacionadas con citas:
+
+- **test-create-appointment.ps1**: Verifica la creación de citas
+- **test-cancel-appointment.ps1**: Prueba el proceso de cancelación de citas
+- **test-confirm-appointment.ps1**: Verifica la confirmación de citas
+- **test-history.ps1**: Comprueba el registro de historial de operaciones
+- **test-pending.ps1**: Verifica el listado de citas pendientes
+
+Estos tests simulan los flujos completos de operaciones para asegurar que todo el proceso funciona correctamente, desde la creación hasta la cancelación o confirmación de las citas.
+
+### Tests de WebSockets
+
+En `src/Tests/WebSocket` se encuentran las pruebas relacionadas con la comunicación en tiempo real:
+
+- **test-websocket.ps1**: Prueba completa del sistema de notificaciones por WebSockets
+- **test-websocket-simple.ps1**: Versión simplificada para tests rápidos
+
+Estos tests establecen conexiones con el servicio de notificaciones y verifican que las notificaciones se envíen correctamente cuando ocurren cambios en las citas.
+
+### Ejecución de Pruebas
+
+Todas las pruebas pueden ejecutarse de forma individual o utilizando el script centralizado:
+
+```powershell
+# Ejecutar todas las pruebas
+.\src\Tools\Scripts\run-all-tests.ps1
+
+# Ejecutar una prueba específica
+.\src\Tests\API\test-api-complete.ps1
+```
+
+Los resultados de las pruebas se muestran en la consola, indicando cuáles han pasado y cuáles han fallado, facilitando así la identificación y corrección de errores.
+
+## Scripts de Utilidad
+
+He desarrollado varios scripts útiles para facilitar el desarrollo, pruebas y uso del sistema:
+
+### Scripts en la Raíz del Proyecto
+
+- **iniciar_clinic_app.ps1**: Script principal que inicia todos los componentes del sistema
+- **api-report.ps1**: Genera y abre automáticamente un informe detallado de la API
+
+### Scripts de Generación de Informes
+
+En el directorio `report` y `src/Tools/Scripts`:
+
+- **generate-api-report.ps1**: Genera un informe HTML completo de todos los endpoints de la API
+- **generate-and-open-report.ps1**: Genera el informe y lo abre automáticamente en el navegador
+- **open-report.ps1**: Simplemente abre un informe ya generado
+
+### Scripts de Mantenimiento
+
+En el directorio `src/Tools/Scripts`:
+
+- **forzar-eliminacion.ps1**: Herramienta para forzar la eliminación de citas en caso de errores
+- **borrado-extremo.ps1**: Limpia completamente la base de datos para pruebas de inicio limpio
+- **run-all-tests.ps1**: Ejecuta todas las pruebas automatizadas en secuencia
+
+Estos scripts facilitan enormemente el trabajo diario con la aplicación, automatizando tareas comunes y proporcionando herramientas para situaciones específicas.
+
+> 📝 **Nota**: Para documentación detallada sobre todas las herramientas y scripts, consulta [docs/herramientas.md](docs/herramientas.md).
+
 ## Ejecución del Proyecto
 
 Para ejecutar todos los componentes del sistema fácilmente, utilice el script incluido:
@@ -659,24 +791,48 @@ Para ejecutar todos los componentes del sistema fácilmente, utilice el script i
 .\iniciar_clinic_app.ps1
 ```
 
-Este script iniciará todos los componentes necesarios:
-- **Servidor API**: Gestiona todas las peticiones y la lógica de negocio
-- **Cliente Web**: Accesible en http://localhost:5021/index.html
-- **Panel de Administración**: Accesible en http://localhost:5021/admin/index.html (usuario: admin, contraseña: admin)
-- **Monitor de Operaciones**: Muestra las operaciones CRUD en tiempo real
+Este script realiza las siguientes operaciones:
+- **Compila la solución completa** para asegurar que todos los componentes están actualizados
+- **Inicia el servidor API** en una ventana separada de PowerShell
+- **Abre automáticamente el calendario para pacientes** en el navegador (http://localhost:5021/index.html)
+- **Abre el panel de administración** en otra pestaña (http://localhost:5021/admin/index.html)
+- **Muestra información útil** sobre las URLs disponibles y credenciales
 
-Para ejecutar los componentes por separado:
+### Credenciales por defecto
+Para acceder al panel de administración, use:
+- **Usuario**: admin
+- **Contraseña**: admin
 
-### Servidor
+### Generación de informes
+
+Para generar un informe completo sobre la API:
+
+```bash
+.\api-report.ps1
+```
+
+Este comando generará un informe HTML detallado de la API y lo abrirá automáticamente en su navegador predeterminado.
+
+### Ejecución individual de componentes
+
+Si desea ejecutar los componentes por separado:
+
+#### Servidor API
 ```bash
 cd src/Server/API
 dotnet run
 ```
 
-### Monitor de Operaciones
+#### Monitor de Operaciones
 ```bash
 cd src/Clients/ConsoleClient
 dotnet run
+```
+
+#### Ejecutar pruebas
+```bash
+cd src/Tools/Scripts
+.\run-all-tests.ps1
 ```
 
 ## Demo en Video
@@ -706,21 +862,22 @@ Al desarrollar este proyecto, me di cuenta de la importancia de planificar bien 
 Aunque estoy satisfecho con el resultado, hay aspectos que podrían mejorarse en futuras versiones:
 
 1. **Escalabilidad**: El servidor actual podría tener limitaciones con muchos clientes
-2. **Pruebas automatizadas**: Faltan tests unitarios y de integración
+2. **Pruebas automatizadas**: A pesar de tener muchas pruebas, aún faltan tests unitarios más específicos
 3. **Gestión de errores**: Podría ser más robusta en algunos componentes
 4. **UI/UX**: La interfaz de usuario podría mejorar con más feedback visual
 5. **Offline mode**: Sería útil que el cliente web funcionara sin conexión
+6. **Containerización**: La aplicación se beneficiaría de estar en contenedores Docker
+7. **CI/CD**: Implementar un pipeline de integración continua para pruebas automáticas
 
 Estas "deudas técnicas" son oportunidades de mejora que tengo identificadas para futuras iteraciones del proyecto.
 
----
+## Documentación Adicional
 
-## Requisitos Implementados
+Para facilitar el uso y mantenimiento del sistema, he creado documentación adicional:
 
-- [x] Comunicaciones cliente-servidor por sockets
-- [x] Bloqueo de recursos compartidos
-- [x] API REST con todas las operaciones CRUD
-- [x] Persistencia en JSON
-- [x] Replicación en Firebase
-- [x] Cifrado asimétrico en comunicaciones
-- [x] Registro unidireccional de operaciones 
+- [**Documentación de Herramientas**](docs/herramientas.md): Guía detallada sobre todas las herramientas, scripts y utilidades disponibles
+- [**Documentación de API REST**](docs/api-endpoints.md): Detalle completo de todos los endpoints disponibles con ejemplos de uso
+- [**Manual de Usuario**](docs/manual-usuario.md): Guía para usuarios finales sobre cómo utilizar el sistema
+- [**Guía de Desarrollo**](docs/guia-desarrollo.md): Información para desarrolladores que deseen extender o modificar el sistema
+
+Estos documentos complementan esta documentación principal y ofrecen detalles específicos para diferentes audiencias. 

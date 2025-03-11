@@ -105,12 +105,29 @@ namespace Server.Data.Json
         /// <returns>true si se eliminó con éxito, false si no se encontró</returns>
         public bool DeleteAppointment(long id)
         {
+            Console.WriteLine($"[DEBUG] JsonDataRepository.DeleteAppointment: Eliminando cita con ID {id}");
+            
             var appointments = LoadAppointments();
+            Console.WriteLine($"[DEBUG] JsonDataRepository.DeleteAppointment: Cargadas {appointments.Count} citas");
+            
+            // Verificar si la cita existe antes de intentar eliminarla
+            var appointmentToDelete = appointments.FirstOrDefault(a => a.Id == id);
+            if (appointmentToDelete == null)
+            {
+                Console.WriteLine($"[DEBUG] JsonDataRepository.DeleteAppointment: No se encontró la cita con ID {id}");
+                return false;
+            }
+            
+            Console.WriteLine($"[DEBUG] JsonDataRepository.DeleteAppointment: Encontrada cita para eliminar: ID {id}, Paciente: {appointmentToDelete.PatientName}");
+            
             var removedCount = appointments.RemoveAll(a => a.Id == id);
+            
+            Console.WriteLine($"[DEBUG] JsonDataRepository.DeleteAppointment: Se eliminaron {removedCount} citas");
             
             if (removedCount > 0)
             {
                 SaveAppointments(appointments);
+                Console.WriteLine($"[DEBUG] JsonDataRepository.DeleteAppointment: Guardadas {appointments.Count} citas tras eliminar");
                 return true;
             }
             
@@ -173,17 +190,45 @@ namespace Server.Data.Json
         {
             try
             {
+                Console.WriteLine($"[DEBUG] JsonDataRepository.LoadAppointments: Cargando citas desde {_appointmentsFile}");
+                
+                if (!File.Exists(_appointmentsFile))
+                {
+                    Console.WriteLine($"[DEBUG] JsonDataRepository.LoadAppointments: El archivo no existe, creando uno nuevo");
+                    File.WriteAllText(_appointmentsFile, "[]");
+                    return new List<Appointment>();
+                }
+                
                 var json = File.ReadAllText(_appointmentsFile);
+                
+                Console.WriteLine($"[DEBUG] JsonDataRepository.LoadAppointments: JSON leído, longitud: {json.Length}");
+                
                 var appointments = JsonSerializer.Deserialize<List<Appointment>>(json, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
                 
-                return appointments ?? new List<Appointment>();
+                if (appointments == null)
+                {
+                    Console.WriteLine($"[DEBUG] JsonDataRepository.LoadAppointments: La deserialización devolvió null");
+                    return new List<Appointment>();
+                }
+                
+                Console.WriteLine($"[DEBUG] JsonDataRepository.LoadAppointments: Se cargaron {appointments.Count} citas");
+                
+                // Mostrar IDs de citas cargadas para debug
+                if (appointments.Count > 0)
+                {
+                    var ids = string.Join(", ", appointments.Select(a => a.Id));
+                    Console.WriteLine($"[DEBUG] JsonDataRepository.LoadAppointments: IDs de citas: {ids}");
+                }
+                
+                return appointments;
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error al cargar las citas: {ex.Message}");
+                Console.Error.WriteLine($"StackTrace: {ex.StackTrace}");
                 return new List<Appointment>();
             }
         }
@@ -196,17 +241,38 @@ namespace Server.Data.Json
         {
             try
             {
+                Console.WriteLine($"[DEBUG] JsonDataRepository.SaveAppointments: Guardando {appointments.Count} citas");
+                
+                // Mostrar IDs de citas para debug
+                if (appointments.Count > 0)
+                {
+                    var ids = string.Join(", ", appointments.Select(a => a.Id));
+                    Console.WriteLine($"[DEBUG] JsonDataRepository.SaveAppointments: IDs de citas: {ids}");
+                }
+                
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true
                 };
                 
                 var json = JsonSerializer.Serialize(appointments, options);
+                Console.WriteLine($"[DEBUG] JsonDataRepository.SaveAppointments: JSON serializado, longitud: {json.Length}");
+                
+                // Crear una copia de seguridad antes de sobrescribir
+                if (File.Exists(_appointmentsFile))
+                {
+                    var backupFile = $"{_appointmentsFile}.bak";
+                    Console.WriteLine($"[DEBUG] JsonDataRepository.SaveAppointments: Creando copia de seguridad en {backupFile}");
+                    File.Copy(_appointmentsFile, backupFile, true);
+                }
+                
                 File.WriteAllText(_appointmentsFile, json);
+                Console.WriteLine($"[DEBUG] JsonDataRepository.SaveAppointments: Archivo guardado exitosamente");
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error al guardar las citas: {ex.Message}");
+                Console.Error.WriteLine($"StackTrace: {ex.StackTrace}");
                 throw;
             }
         }

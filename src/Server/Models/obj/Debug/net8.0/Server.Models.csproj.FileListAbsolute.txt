@@ -13,3 +13,4 @@ C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.M
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\refint\Server.Models.dll
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.pdb
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\ref\Server.Models.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Models\obj\Debug\net8.0\Server.Models.sourcelink.json

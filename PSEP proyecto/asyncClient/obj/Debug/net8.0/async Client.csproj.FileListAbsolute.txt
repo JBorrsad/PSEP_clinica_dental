@@ -1,0 +1,14 @@
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\bin\Debug\net8.0\async Client.exe
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\bin\Debug\net8.0\async Client.deps.json
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\bin\Debug\net8.0\async Client.runtimeconfig.json
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\bin\Debug\net8.0\async Client.dll
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\bin\Debug\net8.0\async Client.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.AssemblyInfoInputs.cache
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.AssemblyInfo.cs
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.csproj.CoreCompileInputs.cache
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.dll
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\refint\async Client.dll
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.pdb
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\async Client.genruntimeconfig.cache
+C:\Users\juan-\Desktop\PSEP proyecto\asyncClient\obj\Debug\net8.0\ref\async Client.dll

@@ -7,6 +7,7 @@ namespace Server.Models
     /// </summary>
     public class AppointmentHistoryItem
     {
+        public string Id { get; set; }
         public long AppointmentId { get; set; }
         public string PatientName { get; set; }
         public string Action { get; set; }

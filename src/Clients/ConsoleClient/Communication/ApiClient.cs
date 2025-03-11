@@ -87,10 +87,14 @@ namespace Clients.ConsoleClient.Communication
                 await _notificationClient.ConnectAsync(_notificationServer, _notificationPort);
                 _notificationStream = _notificationClient.GetStream();
                 
-                // Send our public key to the server
+                // Primero recibir la clave pública del servidor
+                var streamReader = new StreamReader(_notificationStream);
+                string serverPublicKey = await streamReader.ReadLineAsync();
+                
+                // Luego enviar nuestra clave pública al servidor
+                var streamWriter = new StreamWriter(_notificationStream) { AutoFlush = true };
                 string publicKey = _encryptionService.GetPublicKey();
-                byte[] keyData = Encoding.UTF8.GetBytes(publicKey);
-                await _notificationStream.WriteAsync(keyData, 0, keyData.Length);
+                await streamWriter.WriteLineAsync(publicKey);
                 
                 Console.WriteLine("Conectado al servidor de notificaciones");
                 _notificationConnected = true;
@@ -105,31 +109,31 @@ namespace Clients.ConsoleClient.Communication
 
         private async Task ListenForNotificationsAsync()
         {
-            byte[] buffer = new byte[4096];
-            
             try
             {
+                var streamReader = new StreamReader(_notificationStream);
+                
                 while (_notificationConnected && _notificationStream != null)
                 {
-                    Array.Clear(buffer, 0, buffer.Length);
-                    
-                    int bytesRead = await _notificationStream.ReadAsync(buffer, 0, buffer.Length);
-                    if (bytesRead <= 0)
+                    string encryptedMessage = await streamReader.ReadLineAsync();
+                    if (string.IsNullOrEmpty(encryptedMessage))
                     {
                         Console.WriteLine("La conexión con el servidor de notificaciones se ha cerrado");
                         _notificationConnected = false;
                         break;
                     }
                     
-                    string encryptedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     string jsonMessage = _encryptionService.Decrypt(encryptedMessage);
                     
                     try
                     {
-                        AppointmentNotification? notification = JsonSerializer.Deserialize<AppointmentNotification>(jsonMessage);
-                        if (notification != null)
+                        if (!string.IsNullOrEmpty(jsonMessage))
                         {
-                            HandleNotification(notification);
+                            AppointmentNotification? notification = JsonSerializer.Deserialize<AppointmentNotification>(jsonMessage);
+                            if (notification != null)
+                            {
+                                HandleNotification(notification);
+                            }
                         }
                     }
                     catch (JsonException ex)
@@ -150,42 +154,79 @@ namespace Clients.ConsoleClient.Communication
             if (notification.Type != "notification") return;
             
             Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("=================== NOTIFICACIÓN ===================");
             
-            try
+            // Obtener timestamp actual
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            
+            // Determinar el color y texto según la operación
+            ConsoleColor color;
+            string operationName;
+            string detailsText = "";
+            
+            switch (notification.Action.ToLower())
             {
-                switch (notification.Action)
-                {
-                    case "created":
-                        var newAppointment = JsonSerializer.Deserialize<Appointment>(notification.Data.GetRawText());
-                        Console.WriteLine($"Nueva cita creada: {newAppointment?.PatientName} - {newAppointment?.AppointmentDateTime}");
-                        break;
-                    
-                    case "updated":
-                        var updatedAppointment = JsonSerializer.Deserialize<Appointment>(notification.Data.GetRawText());
-                        Console.WriteLine($"Cita actualizada: {updatedAppointment?.PatientName} - {updatedAppointment?.AppointmentDateTime}");
-                        break;
-                    
-                    case "deleted":
-                        // El dato podría ser solo el ID o el objeto completo, dependiendo de la implementación del servidor
-                        Console.WriteLine($"Cita eliminada: {notification.Data}");
-                        break;
-                    
-                    default:
-                        Console.WriteLine($"Acción desconocida: {notification.Action}");
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al procesar el contenido de la notificación: {ex.Message}");
-                Console.WriteLine($"Datos: {notification.Data}");
+                case "created":
+                    color = ConsoleColor.Green;
+                    operationName = "CREACIÓN";
+                    var newAppointment = JsonSerializer.Deserialize<Appointment>(notification.Data.GetRawText());
+                    detailsText = $"Paciente: {newAppointment?.PatientName}\n" +
+                                $"Fecha y hora: {newAppointment?.AppointmentDateTime:dd/MM/yyyy HH:mm}\n" +
+                                $"Tratamiento: {newAppointment?.Treatment}\n" +
+                                $"Duración: {newAppointment?.DurationMinutes} minutos";
+                    break;
+                
+                case "updated":
+                    color = ConsoleColor.Yellow;
+                    operationName = "ACTUALIZACIÓN";
+                    var updatedAppointment = JsonSerializer.Deserialize<Appointment>(notification.Data.GetRawText());
+                    detailsText = $"Paciente: {updatedAppointment?.PatientName}\n" +
+                                $"Fecha y hora: {updatedAppointment?.AppointmentDateTime:dd/MM/yyyy HH:mm}\n" +
+                                $"Tratamiento: {updatedAppointment?.Treatment}\n" +
+                                $"Estado: {updatedAppointment?.Status}";
+                    break;
+                
+                case "deleted":
+                    color = ConsoleColor.Red;
+                    operationName = "ELIMINACIÓN";
+                    try
+                    {
+                        // Intentar extraer el ID si está disponible
+                        var deletedData = JsonDocument.Parse(notification.Data.GetRawText());
+                        if (deletedData.RootElement.TryGetProperty("Id", out var idElement))
+                        {
+                            detailsText = $"ID de cita: {idElement}";
+                        }
+                        else
+                        {
+                            detailsText = $"Datos: {notification.Data}";
+                        }
+                    }
+                    catch
+                    {
+                        detailsText = $"Datos: {notification.Data}";
+                    }
+                    break;
+                
+                default:
+                    color = ConsoleColor.Blue;
+                    operationName = $"ACCIÓN: {notification.Action}";
+                    detailsText = $"Datos: {notification.Data}";
+                    break;
             }
             
-            Console.WriteLine("=====================================================");
+            // Mostrar el evento en formato de registro de monitor
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write($"[{timestamp}] ");
+            
+            Console.ForegroundColor = color;
+            Console.WriteLine($"OPERACIÓN: {operationName}");
+            
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(detailsText);
+            
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("─────────────────────────────────────────────────────");
             Console.ResetColor();
-            Console.WriteLine("\nPulse cualquier tecla para continuar...");
         }
 
         public async Task ViewAllAppointmentsAsync()

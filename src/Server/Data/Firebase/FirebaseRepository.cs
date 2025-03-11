@@ -135,22 +135,57 @@ namespace Server.Data.Firebase
         /// <returns>True si se eliminó correctamente, False en caso contrario</returns>
         public async Task<bool> DeleteAppointmentAsync(Server.Models.Appointment appointment)
         {
-            // Si no tenemos la clave de Firebase, buscar la cita por su ID
-            if (string.IsNullOrEmpty(appointment.FirebaseKey))
+            try 
             {
-                var existingAppointment = await GetAppointmentAsync(appointment.Id);
-                if (existingAppointment == null)
+                Console.WriteLine($"[FIREBASE] Intentando eliminar cita con ID {appointment.Id}");
+                
+                // Si no tenemos la clave de Firebase, buscar la cita por su ID
+                if (string.IsNullOrEmpty(appointment.FirebaseKey))
                 {
-                    return false;
+                    Console.WriteLine($"[FIREBASE] No se tiene clave Firebase para la cita {appointment.Id}, buscando...");
+                    
+                    // Obtener todas las citas para encontrar la que coincide con nuestro ID
+                    var allAppointments = await GetAllAppointmentsAsync();
+                    Console.WriteLine($"[FIREBASE] Se encontraron {allAppointments.Count} citas en Firebase");
+                    
+                    var existingAppointment = allAppointments.FirstOrDefault(a => a.Id == appointment.Id);
+                    if (existingAppointment == null)
+                    {
+                        Console.WriteLine($"[FIREBASE] No se encontró la cita {appointment.Id} en Firebase");
+                        return false;
+                    }
+                    
+                    appointment.FirebaseKey = existingAppointment.FirebaseKey;
+                    Console.WriteLine($"[FIREBASE] Se encontró la cita {appointment.Id} con clave Firebase: {appointment.FirebaseKey}");
                 }
                 
-                appointment.FirebaseKey = existingAppointment.FirebaseKey;
+                Console.WriteLine($"[FIREBASE] Eliminando cita ID {appointment.Id} con clave Firebase: {appointment.FirebaseKey}");
+                
+                // Intentar eliminar directamente con la clave
+                var url = $"{_firebaseUrl}/appointments/{appointment.FirebaseKey}.json?auth={_apiKey}";
+                Console.WriteLine($"[FIREBASE] URL de eliminación: {url}");
+                
+                var response = await _httpClient.DeleteAsync(url);
+                
+                Console.WriteLine($"[FIREBASE] Respuesta de Firebase: Status={response.StatusCode}, Contenido={await response.Content.ReadAsStringAsync()}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[FIREBASE] Cita ID {appointment.Id} eliminada exitosamente de Firebase");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"[FIREBASE] Error al eliminar cita ID {appointment.Id}: {response.StatusCode}");
+                    return false;
+                }
             }
-            
-            var response = await _httpClient.DeleteAsync(
-                $"{_firebaseUrl}/appointments/{appointment.FirebaseKey}.json?auth={_apiKey}");
-            
-            return response.IsSuccessStatusCode;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FIREBASE] Error en DeleteAppointmentAsync: {ex.Message}");
+                Console.WriteLine($"[FIREBASE] StackTrace: {ex.StackTrace}");
+                return false;
+            }
         }
 
         /// <summary>

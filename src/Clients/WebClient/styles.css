@@ -70,16 +70,21 @@ button:hover {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s;
+    font-weight: normal;
 }
 
 .time-slot:hover {
     background-color: #f0f0f0;
+    border-color: #4CAF50;
 }
 
 .time-slot.selected {
     background-color: #4CAF50;
     color: white;
     border-color: #4CAF50;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transform: scale(1.05);
 }
 
 /* Calendario */

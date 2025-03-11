@@ -24,6 +24,39 @@
             <param name="date">Fecha a consultar</param>
             <returns>Lista de horarios disponibles</returns>
         </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetAppointmentsForDate(System.DateTime)">
+            <summary>
+            Obtiene las citas programadas para una fecha específica
+            </summary>
+            <param name="date">Fecha a consultar en formato YYYY-MM-DD</param>
+            <returns>Lista de citas para esa fecha</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetPendingAppointments">
+            <summary>
+            Obtiene las solicitudes de cita pendientes (no confirmadas)
+            </summary>
+            <returns>Lista de citas pendientes</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.GetAppointmentHistory">
+            <summary>
+            Obtiene el historial de solicitudes de citas (confirmadas o canceladas)
+            </summary>
+            <returns>Lista del historial de citas</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.ConfirmAppointment(System.Int64)">
+            <summary>
+            Confirma una cita existente
+            </summary>
+            <param name="id">ID de la cita a confirmar</param>
+            <returns>La cita actualizada</returns>
+        </member>
+        <member name="M:Server.API.Controllers.AppointmentsController.CancelAppointment(System.Int64)">
+            <summary>
+            Cancela una cita existente
+            </summary>
+            <param name="id">ID de la cita a cancelar</param>
+            <returns>La cita actualizada</returns>
+        </member>
         <member name="M:Server.API.Controllers.AppointmentsController.PutAppointment(System.Int64,Common.Models.Appointment)">
             <summary>
             Actualiza una cita existente
@@ -41,10 +74,8 @@
         </member>
         <member name="M:Server.API.Controllers.AppointmentsController.DeleteAppointment(System.Int64)">
             <summary>
-            Elimina una cita existente
+            ELIMINACIÓN EXTREMA: Borra completamente la cita de todas las fuentes posibles
             </summary>
-            <param name="id">ID de la cita a eliminar</param>
-            <returns>No Content si la operación es exitosa</returns>
         </member>
         <member name="M:Server.API.Controllers.AppointmentsController.GetPatientAppointments(System.String)">
             <summary>
@@ -73,6 +104,19 @@
             <param name="model">Credenciales de inicio de sesión</param>
             <returns>Token JWT si las credenciales son válidas</returns>
         </member>
+        <member name="M:Server.API.Controllers.StaffController.GetAllAppointments">
+            <summary>
+            Obtiene todas las citas
+            </summary>
+            <returns>Lista de todas las citas</returns>
+        </member>
+        <member name="M:Server.API.Controllers.StaffController.GetAppointmentsByDate(System.String)">
+            <summary>
+            Obtiene todas las citas para una fecha específica
+            </summary>
+            <param name="date">Fecha en formato yyyy-MM-dd</param>
+            <returns>Lista de citas para la fecha indicada</returns>
+        </member>
         <member name="M:Server.API.Controllers.StaffController.GetPendingAppointments">
             <summary>
             Obtiene todas las citas pendientes
@@ -86,6 +130,19 @@
             <param name="id">ID de la cita</param>
             <param name="model">Modelo con el nuevo estado</param>
             <returns>Cita actualizada</returns>
+        </member>
+        <member name="M:Server.API.Controllers.StaffController.DeleteAppointment(System.Int64)">
+            <summary>
+            Elimina una cita (rechaza una solicitud)
+            </summary>
+            <param name="id">ID de la cita</param>
+            <returns>Resultado de la operación</returns>
+        </member>
+        <member name="M:Server.API.Controllers.StaffController.GetAppointmentHistory">
+            <summary>
+            Obtiene el historial de solicitudes
+            </summary>
+            <returns>Lista del historial de solicitudes</returns>
         </member>
         <member name="T:Server.API.Middleware.JwtMiddleware">
             <summary>

@@ -67,6 +67,14 @@
             margin-bottom: 15px;
             display: none;
         }
+
+        .debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -83,25 +91,44 @@
             <input type="password" id="password" placeholder="Contraseña" required>
             <button type="submit">Iniciar Sesión</button>
         </form>
+
+        <div id="debugInfo" class="debug-info">
+            <p>Para iniciar sesión use: usuario <strong>admin</strong>, contraseña <strong>admin</strong></p>
+            <p>API URL: <span id="apiUrlDisplay"></span></p>
+        </div>
     </div>
     
     <script>
         // Configuración
         const API_URL = window.location.origin + '/api';
         
+        // Mostrar información de depuración
+        document.getElementById('apiUrlDisplay').textContent = API_URL;
+        
         // Verificar si ya hay un token válido
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("Página cargada, verificando token...");
+            console.log("API URL:", API_URL);
+            
             const token = localStorage.getItem('authToken');
             if (token) {
+                console.log("Token encontrado en localStorage:", token.substring(0, 20) + "...");
                 // Si hay un token, verificar su validez
                 validateToken(token)
                     .then(isValid => {
+                        console.log("Resultado de validación de token:", isValid);
                         if (isValid) {
                             // Si es válido, redirigir al panel
+                            console.log("Token válido, redirigiendo a index.html");
                             window.location.href = 'index.html';
                         }
                     })
-                    .catch(err => console.error('Error al validar token:', err));
+                    .catch(err => {
+                        console.error('Error al validar token:', err);
+                        showError('Error al validar token. Por favor, inicie sesión nuevamente.');
+                    });
+            } else {
+                console.log("No se encontró token en localStorage");
             }
         });
         
@@ -112,32 +139,55 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
+            console.log(`Intentando iniciar sesión con usuario: ${username}`);
+            
             try {
-                const response = await fetch(`${API_URL}/Auth/login`, {
+                const loginUrl = `${API_URL}/Auth/login`;
+                console.log("URL de login:", loginUrl);
+                
+                const loginData = { username, password };
+                console.log("Datos de login:", loginData);
+                
+                const response = await fetch(loginUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify(loginData)
                 });
+                
+                console.log("Respuesta del servidor:", response.status, response.statusText);
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("Login exitoso. Datos recibidos:", data);
                     localStorage.setItem('authToken', data.token);
                     window.location.href = 'index.html';
                 } else {
-                    showError('Usuario o contraseña incorrectos');
+                    const errorData = await response.text();
+                    console.error("Error en login:", response.status, errorData);
+                    
+                    if (response.status === 401) {
+                        showError('Usuario o contraseña incorrectos');
+                    } else if (response.status === 500) {
+                        showError('Error interno del servidor. Por favor, intente más tarde.');
+                    } else {
+                        showError(`Error (${response.status}): ${errorData || response.statusText}`);
+                    }
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
-                showError('Error al conectar con el servidor');
+                showError('Error al conectar con el servidor. Verifique su conexión a internet o que el servidor esté funcionando.');
             }
         });
         
         // Validar token
         async function validateToken(token) {
             try {
-                const response = await fetch(`${API_URL}/Auth/validate`, {
+                const validateUrl = `${API_URL}/Auth/validate`;
+                console.log("URL de validación:", validateUrl);
+                
+                const response = await fetch(validateUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -145,9 +195,13 @@
                     body: JSON.stringify({ token })
                 });
                 
+                console.log("Respuesta de validación:", response.status, response.statusText);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    return data.isValid;
+                    console.log("Datos de validación:", data);
+                    // Aquí hay que corregir la propiedad, en el lado del servidor es "valid", no "isValid"
+                    return data.valid;
                 }
                 return false;
             } catch (error) {
@@ -161,6 +215,8 @@
             const errorElement = document.getElementById('loginError');
             errorElement.textContent = message;
             errorElement.style.display = 'block';
+            
+            console.error("Error mostrado:", message);
             
             // Ocultar después de 5 segundos
             setTimeout(() => {

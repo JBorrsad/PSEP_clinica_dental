@@ -25,3 +25,4 @@ C:\Users\juan-\Desktop\PSEP proyecto\src\Clients\ConsoleClient\obj\Debug\net8.0\
 C:\Users\juan-\Desktop\PSEP proyecto\src\Clients\ConsoleClient\obj\Debug\net8.0\ConsoleClient.pdb
 C:\Users\juan-\Desktop\PSEP proyecto\src\Clients\ConsoleClient\obj\Debug\net8.0\ConsoleClient.genruntimeconfig.cache
 C:\Users\juan-\Desktop\PSEP proyecto\src\Clients\ConsoleClient\obj\Debug\net8.0\ref\ConsoleClient.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Clients\ConsoleClient\obj\Debug\net8.0\ConsoleClient.sourcelink.json

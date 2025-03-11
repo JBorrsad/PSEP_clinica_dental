@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #444;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            overflow: auto;
+            max-height: 300px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Dashboard</h1>
+        
+        <div class="test-section">
+            <h2>Configuración</h2>
+            <p>Token actual: <span id="currentToken">No hay token</span></p>
+            <button id="setTokenBtn">Establecer Token</button>
+            <button id="clearTokenBtn">Borrar Token</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>Probar API</h2>
+            <button id="testApiBtn">Probar Conexión API</button>
+            <pre id="apiResult">Resultados aparecerán aquí...</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>Solicitudes Pendientes</h2>
+            <button id="loadPendingBtn">Cargar Solicitudes Pendientes</button>
+            <pre id="pendingResult">Resultados aparecerán aquí...</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>Historial de Solicitudes</h2>
+            <button id="loadHistoryBtn">Cargar Historial</button>
+            <pre id="historyResult">Resultados aparecerán aquí...</pre>
+        </div>
+    </div>
+    
+    <script>
+        // Configuración
+        const API_URL = window.location.origin + '/api';
+        
+        // Elementos DOM
+        const currentTokenEl = document.getElementById('currentToken');
+        const setTokenBtn = document.getElementById('setTokenBtn');
+        const clearTokenBtn = document.getElementById('clearTokenBtn');
+        const testApiBtn = document.getElementById('testApiBtn');
+        const apiResultEl = document.getElementById('apiResult');
+        const loadPendingBtn = document.getElementById('loadPendingBtn');
+        const pendingResultEl = document.getElementById('pendingResult');
+        const loadHistoryBtn = document.getElementById('loadHistoryBtn');
+        const historyResultEl = document.getElementById('historyResult');
+        
+        // Actualizar visualización del token
+        function updateTokenDisplay() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                currentTokenEl.textContent = token.substring(0, 20) + '...';
+                currentTokenEl.className = 'success';
+            } else {
+                currentTokenEl.textContent = 'No hay token';
+                currentTokenEl.className = 'error';
+            }
+        }
+        
+        // Establecer token
+        setTokenBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('auth_token.txt');
+                const token = await response.text();
+                localStorage.setItem('authToken', token.trim());
+                updateTokenDisplay();
+                showResult(apiResultEl, { message: 'Token establecido correctamente' });
+            } catch (error) {
+                showResult(apiResultEl, { error: 'Error al cargar token: ' + error.message }, true);
+            }
+        });
+        
+        // Borrar token
+        clearTokenBtn.addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            updateTokenDisplay();
+            showResult(apiResultEl, { message: 'Token eliminado' });
+        });
+        
+        // Probar API
+        testApiBtn.addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    throw new Error('No hay token de autenticación');
+                }
+                
+                const response = await fetch(`${API_URL}/Auth/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error de API: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showResult(apiResultEl, data);
+            } catch (error) {
+                showResult(apiResultEl, { error: error.message }, true);
+            }
+        });
+        
+        // Cargar solicitudes pendientes
+        loadPendingBtn.addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    throw new Error('No hay token de autenticación');
+                }
+                
+                const response = await fetch(`${API_URL}/Appointments/Pending`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error al cargar solicitudes: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showResult(pendingResultEl, data);
+            } catch (error) {
+                showResult(pendingResultEl, { error: error.message }, true);
+            }
+        });
+        
+        // Cargar historial
+        loadHistoryBtn.addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    throw new Error('No hay token de autenticación');
+                }
+                
+                const response = await fetch(`${API_URL}/Appointments/History`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error al cargar historial: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showResult(historyResultEl, data);
+            } catch (error) {
+                showResult(historyResultEl, { error: error.message }, true);
+            }
+        });
+        
+        // Mostrar resultados
+        function showResult(element, data, isError = false) {
+            if (isError) {
+                element.innerHTML = `<span class="error">${data.error}</span>`;
+            } else {
+                element.textContent = JSON.stringify(data, null, 2);
+            }
+        }
+        
+        // Inicializar
+        updateTokenDisplay();
+    </script>
+</body>
+</html> 

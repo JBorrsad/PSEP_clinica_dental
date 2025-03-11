@@ -271,3 +271,5 @@ C:\Users\juan-\Desktop\PSEP proyecto\src\Server\API\obj\Debug\net8.0\Server.API.
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\API\obj\Debug\net8.0\ServerAPI.genruntimeconfig.cache
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\API\obj\Debug\net8.0\ref\Server.API.dll
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\API\bin\Debug\net8.0\Data\appointments.json
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\API\obj\Debug\net8.0\ServerAPI.sourcelink.json
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\API\bin\Debug\net8.0\Data\appointment_history.json

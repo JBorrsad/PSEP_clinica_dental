@@ -24,7 +24,7 @@ namespace Server.API.Controllers
         {
             // Credenciales hardcoded para este ejemplo
             // En un entorno real, esto vendría de una base de datos
-            if (model.Username == "admin" && model.Password == "admin123")
+            if (model.Username == "admin" && model.Password == "admin")
             {
                 var token = _jwtAuthService.GenerateToken("1", "Administrador", "admin");
                 

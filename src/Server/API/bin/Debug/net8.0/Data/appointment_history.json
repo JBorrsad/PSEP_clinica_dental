@@ -1,0 +1,198 @@
+[
+  {
+    "Id": null,
+    "AppointmentId": 1,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Creada",
+    "Timestamp": "2025-03-01T10:30:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 2,
+    "PatientName": "Mar\u00EDa L\u00F3pez",
+    "Action": "Creada",
+    "Timestamp": "2025-03-02T14:15:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 3,
+    "PatientName": "Carlos Rodr\u00EDguez",
+    "Action": "Creada",
+    "Timestamp": "2025-03-03T09:45:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 4,
+    "PatientName": "Ana Mart\u00EDnez",
+    "Action": "Creada",
+    "Timestamp": "2025-03-04T16:30:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 2,
+    "PatientName": "Mar\u00EDa L\u00F3pez",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-05T11:20:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 1,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T02:19:37.6509486+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 1,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T02:19:50.1338381+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 1,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T02:20:01.5570894+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 3,
+    "PatientName": "pruebna1",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-11T02:47:44.4819703+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 3,
+    "PatientName": "pruebna1",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T02:52:48.1916764+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 4,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T02:58:17.5686657+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 2,
+    "PatientName": "juan",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:45:28.2196265+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 5,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:45:38.4686253+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 19,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:45:50.5970192+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 6,
+    "PatientName": "Paciente de Prueba",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:31.2608817+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 7,
+    "PatientName": "Paciente B\u00E1sico",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:35.5937047+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 8,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:36.9280746+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 9,
+    "PatientName": "Paciente B\u00E1sico",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:38.2688174+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 10,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:39.6179006+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 11,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:40.7240754+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 12,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:42.0836314+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 13,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:43.7269176+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 14,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:45.0083587+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 15,
+    "PatientName": "Paciente de Informe",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:46.5179063+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 17,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Cancelada",
+    "Timestamp": "2025-03-11T05:49:47.6826064+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 18,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-11T06:12:12.5618054+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 19,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-11T06:15:48.557911+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 20,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-11T06:16:07.3661806+01:00"
+  }
+]

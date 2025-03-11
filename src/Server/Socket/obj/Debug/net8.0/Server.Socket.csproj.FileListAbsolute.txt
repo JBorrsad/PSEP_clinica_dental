@@ -17,3 +17,4 @@ C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Socket\obj\Debug\net8.0\Server.S
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Socket\obj\Debug\net8.0\refint\Server.Socket.dll
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Socket\obj\Debug\net8.0\Server.Socket.pdb
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Socket\obj\Debug\net8.0\ref\Server.Socket.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Socket\obj\Debug\net8.0\Server.Socket.sourcelink.json

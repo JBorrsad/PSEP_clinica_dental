@@ -13,3 +13,4 @@ C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Security\obj\Debug\net8.0\Server
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Security\obj\Debug\net8.0\refint\Server.Security.dll
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Security\obj\Debug\net8.0\Server.Security.pdb
 C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Security\obj\Debug\net8.0\ref\Server.Security.dll
+C:\Users\juan-\Desktop\PSEP proyecto\src\Server\Security\obj\Debug\net8.0\Server.Security.sourcelink.json

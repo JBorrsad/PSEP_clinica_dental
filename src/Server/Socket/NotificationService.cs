@@ -222,13 +222,63 @@ namespace Server.Socket
         }
         
         /// <summary>
-        /// Notifica a todos los clientes que se ha eliminado una cita
+        /// ELIMINACIÓN EXTREMA: Notifica a todos los clientes que se ha eliminado una cita
         /// </summary>
-        /// <param name="appointmentData">Datos de la cita eliminada (normalmente solo el ID)</param>
         public async Task NotifyAppointmentDeletedAsync(object appointmentData)
         {
-            var notification = new AppointmentNotification("DELETED", appointmentData);
-            await NotifyAllClientsAsync(notification);
+            try
+            {
+                // PASO 1: Convertir siempre a una notificación de tipo DELETED independientemente de los datos recibidos
+                Console.WriteLine("[ELIMINACIÓN-EXTREMA-NOTIFY] Preparando notificación de ELIMINACIÓN");
+                
+                // PASO 2: Crear objeto de notificación explícitamente como DELETED
+                var notification = new AppointmentNotification("DELETED", appointmentData);
+                
+                // PASO 3: Serializar a JSON para verificar la estructura
+                var notificationJson = JsonSerializer.Serialize(notification);
+                Console.WriteLine($"[ELIMINACIÓN-EXTREMA-NOTIFY] Enviando: {notificationJson}");
+                
+                // PASO 4: Enviar a WebSocket y registrar confirmación
+                var webSocketClients = _webSocketClients.Count;
+                Console.WriteLine($"[ELIMINACIÓN-EXTREMA-NOTIFY] Enviando a {webSocketClients} clientes WebSocket");
+                foreach (var clientId in _webSocketClients.Keys)
+                {
+                    try
+                    {
+                        if (_webSocketClients.TryGetValue(clientId, out WebSocket webSocket) && 
+                            webSocket.State == WebSocketState.Open)
+                        {
+                            var buffer = Encoding.UTF8.GetBytes(notificationJson);
+                            await webSocket.SendAsync(
+                                new ArraySegment<byte>(buffer), 
+                                WebSocketMessageType.Text, 
+                                true, 
+                                CancellationToken.None);
+                            
+                            Console.WriteLine($"[ELIMINACIÓN-EXTREMA-NOTIFY] Enviado a cliente {clientId}");
+                        }
+                    }
+                    catch (Exception clientEx)
+                    {
+                        Console.WriteLine($"[ELIMINACIÓN-EXTREMA-NOTIFY] Error al enviar a cliente {clientId}: {clientEx.Message}");
+                    }
+                }
+                
+                // PASO 5: Notificar también a clientes TCP si hay alguno
+                if (_tcpClients.Count > 0)
+                {
+                    Console.WriteLine($"[ELIMINACIÓN-EXTREMA-NOTIFY] Enviando a {_tcpClients.Count} clientes TCP");
+                    // Notificar a los clientes TCP usando el método existente
+                    await NotifyAllClientsAsync(notification);
+                }
+                
+                Console.WriteLine("[ELIMINACIÓN-EXTREMA-NOTIFY] Notificación completada con éxito");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ELIMINACIÓN-EXTREMA-NOTIFY] ERROR CRÍTICO: {ex.Message}");
+                // Continuar sin lanzar excepción para no interrumpir el flujo
+            }
         }
         
         /// <summary>

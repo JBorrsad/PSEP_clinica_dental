@@ -6,6 +6,9 @@ using Server.Data.Firebase;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using System.Linq;
+using Server.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Server.API.Controllers
 {
@@ -34,18 +37,50 @@ namespace Server.API.Controllers
         {
             // Credenciales hardcoded para este ejemplo
             // En un entorno real, esto vendría de una base de datos
-            if (model.Username == "staff" && model.Password == "staff123")
+            if (model.Username == "admin" && model.Password == "admin")
             {
-                var token = _jwtAuthService.GenerateToken("2", "Staff", "staff");
+                var token = _jwtAuthService.GenerateToken("2", "Staff", "admin");
                 
                 return Ok(new { 
                     token = token,
-                    username = "Staff",
+                    username = "Administrador",
                     role = "staff"
                 });
             }
             
             return Unauthorized(new { message = "Usuario o contraseña incorrectos" });
+        }
+
+        /// <summary>
+        /// Obtiene todas las citas
+        /// </summary>
+        /// <returns>Lista de todas las citas</returns>
+        [HttpGet("appointments/all")]
+        public IActionResult GetAllAppointments()
+        {
+            var appointments = _jsonRepository.GetAllAppointments();
+            return Ok(appointments);
+        }
+
+        /// <summary>
+        /// Obtiene todas las citas para una fecha específica
+        /// </summary>
+        /// <param name="date">Fecha en formato yyyy-MM-dd</param>
+        /// <returns>Lista de citas para la fecha indicada</returns>
+        [HttpGet("appointments/date/{date}")]
+        public IActionResult GetAppointmentsByDate(string date)
+        {
+            if (!DateTime.TryParse(date, out DateTime parsedDate))
+            {
+                return BadRequest(new { message = "Formato de fecha inválido. Use yyyy-MM-dd" });
+            }
+
+            var appointments = _jsonRepository.GetAllAppointments();
+            var appointmentsForDate = appointments.Where(a => 
+                a.AppointmentDateTime.Date == parsedDate.Date
+            ).ToList();
+            
+            return Ok(appointmentsForDate);
         }
 
         /// <summary>
@@ -56,15 +91,7 @@ namespace Server.API.Controllers
         public IActionResult GetPendingAppointments()
         {
             var appointments = _jsonRepository.GetAllAppointments();
-            var pendingAppointments = new List<Server.Models.Appointment>();
-            
-            foreach (var appointment in appointments)
-            {
-                if (!appointment.IsConfirmed)
-                {
-                    pendingAppointments.Add(appointment);
-                }
-            }
+            var pendingAppointments = appointments.Where(a => !a.IsConfirmed).ToList();
             
             return Ok(pendingAppointments);
         }
@@ -86,17 +113,114 @@ namespace Server.API.Controllers
             }
             
             appointment.IsConfirmed = model.IsConfirmed;
-            appointment.Notes = model.Notes ?? appointment.Notes;
+            
+            if (!string.IsNullOrEmpty(model.Notes))
+            {
+                appointment.Notes = model.Notes;
+            }
             
             if (model.AppointmentDateTime.HasValue)
             {
                 appointment.AppointmentDateTime = model.AppointmentDateTime.Value;
             }
             
+            if (!string.IsNullOrEmpty(model.TreatmentType))
+            {
+                appointment.Treatment = model.TreatmentType;
+            }
+            
+            // Actualizar la cita
             _jsonRepository.UpdateAppointment(appointment);
             await _firebaseRepository.UpdateAppointmentAsync(appointment);
             
+            // Agregar al historial
+            var historyItem = new Server.Models.AppointmentHistoryItem
+            {
+                AppointmentId = appointment.Id,
+                PatientName = appointment.PatientName,
+                Action = model.IsConfirmed ? "Aceptada" : "Reprogramada",
+                Timestamp = DateTime.Now
+            };
+            
+            // Agregar al historial JSON local
+            _jsonRepository.AddAppointmentHistoryItem(historyItem);
+            
+            // Replicar en Firebase
+            await _firebaseRepository.AddAppointmentHistoryItemAsync(historyItem);
+            
             return Ok(appointment);
+        }
+
+        /// <summary>
+        /// Elimina una cita (rechaza una solicitud)
+        /// </summary>
+        /// <param name="id">ID de la cita</param>
+        /// <returns>Resultado de la operación</returns>
+        [HttpDelete("appointments/{id}")]
+        public async Task<IActionResult> DeleteAppointment(long id)
+        {
+            var appointment = _jsonRepository.GetAppointment(id);
+            
+            if (appointment == null)
+            {
+                return NotFound(new { message = "Cita no encontrada" });
+            }
+            
+            // Eliminar la cita
+            _jsonRepository.DeleteAppointment(id);
+            await _firebaseRepository.DeleteAppointmentAsync(appointment.FirebaseKey);
+            
+            // Agregar al historial
+            var historyItem = new Server.Models.AppointmentHistoryItem
+            {
+                AppointmentId = appointment.Id,
+                PatientName = appointment.PatientName,
+                Action = "Rechazada",
+                Timestamp = DateTime.Now
+            };
+            
+            // Agregar al historial JSON local
+            _jsonRepository.AddAppointmentHistoryItem(historyItem);
+            
+            // Replicar en Firebase
+            await _firebaseRepository.AddAppointmentHistoryItemAsync(historyItem);
+            
+            return Ok(new { message = "Cita eliminada correctamente" });
+        }
+
+        /// <summary>
+        /// Obtiene el historial de solicitudes
+        /// </summary>
+        /// <returns>Lista del historial de solicitudes</returns>
+        [HttpGet("history")]
+        public async Task<IActionResult> GetAppointmentHistory()
+        {
+            // Obtener historial local
+            var historyLocal = _jsonRepository.GetAppointmentHistory();
+            
+            // Obtener historial de Firebase
+            var historyFirebase = await _firebaseRepository.GetAppointmentHistoryAsync();
+            
+            // Combinar ambos historiales (eliminar duplicados por ID y timestamp)
+            var combinedHistory = historyLocal.ToList();
+            
+            foreach (var fbItem in historyFirebase)
+            {
+                bool isDuplicate = combinedHistory.Any(localItem =>
+                    localItem.AppointmentId == fbItem.AppointmentId &&
+                    Math.Abs((localItem.Timestamp - fbItem.Timestamp).TotalSeconds) < 5 // Considerar casi mismo timestamp
+                );
+                
+                if (!isDuplicate)
+                {
+                    combinedHistory.Add(fbItem);
+                }
+            }
+            
+            // Ordenar por timestamp descendente (más recientes primero)
+            var sortedHistory = combinedHistory.OrderByDescending(item => item.Timestamp).ToList();
+            
+            return Ok(sortedHistory);
         }
     }
 
@@ -105,5 +229,6 @@ namespace Server.API.Controllers
         public bool IsConfirmed { get; set; }
         public string? Notes { get; set; }
         public DateTime? AppointmentDateTime { get; set; }
+        public string? TreatmentType { get; set; }
     }
 } 
