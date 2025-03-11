@@ -240,11 +240,11 @@
     "DurationMinutes": 30,
     "Treatment": "",
     "Notes": "",
-    "Status": "Programada",
+    "Status": "Confirmada",
     "ContactPhone": "661437136",
     "Email": "",
     "TreatmentType": "limpieza",
-    "IsConfirmed": false
+    "IsConfirmed": true
   },
   {
     "Id": 22,
@@ -255,6 +255,45 @@
     "Notes": "asd",
     "Status": "Programada",
     "ContactPhone": "661437136",
+    "Email": "",
+    "TreatmentType": "limpieza",
+    "IsConfirmed": false
+  },
+  {
+    "Id": 23,
+    "PatientName": "Juan Borr\u00E1s",
+    "AppointmentDateTime": "2025-03-11T12:30:00",
+    "DurationMinutes": 30,
+    "Treatment": "",
+    "Notes": "",
+    "Status": "Programada",
+    "ContactPhone": "661437136",
+    "Email": "",
+    "TreatmentType": "limpieza",
+    "IsConfirmed": false
+  },
+  {
+    "Id": 24,
+    "PatientName": "Paciente de Informe",
+    "AppointmentDateTime": "2025-03-18T06:33:46",
+    "DurationMinutes": 30,
+    "Treatment": "",
+    "Notes": "Cita creada desde script de informe",
+    "Status": "Programada",
+    "ContactPhone": "666333444",
+    "Email": "",
+    "TreatmentType": "revisi\u00F3n",
+    "IsConfirmed": false
+  },
+  {
+    "Id": 25,
+    "PatientName": "PRUEBA PARA VIDEO",
+    "AppointmentDateTime": "2025-03-11T10:30:00",
+    "DurationMinutes": 30,
+    "Treatment": "",
+    "Notes": "HOLA, ESPERO QUE VAYA BIEN AHORA",
+    "Status": "Programada",
+    "ContactPhone": "666111222",
     "Email": "",
     "TreatmentType": "limpieza",
     "IsConfirmed": false

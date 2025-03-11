@@ -47,7 +47,7 @@
 12. [Ejecución del Proyecto](#ejecución-del-proyecto)
 13. [Conclusiones](#conclusiones)
 14. [Deudas Técnicas](#deudas-técnicas)
-15. [Documentación Adicional](#documentación-adicional)
+
 
 ---
 
@@ -945,12 +945,3 @@ Aunque estoy satisfecho con el resultado, hay aspectos que podrían mejorarse en
 7. **CI/CD**: Implementar un pipeline de integración continua para pruebas automáticas
 
 Estas "deudas técnicas" son oportunidades de mejora que tengo identificadas para futuras iteraciones del proyecto.
-
-## Documentación Adicional
-
-Para facilitar el uso y mantenimiento del sistema, he creado documentación adicional:
-
-- [**Documentación de Herramientas**](docs/herramientas.md): Guía detallada sobre todas las herramientas, scripts y utilidades disponibles
-- [**Documentación de API REST**](docs/api-endpoints.md): Detalle completo de todos los endpoints disponibles con ejemplos de uso
-- [**Manual de Usuario**](docs/manual-usuario.md): Guía para usuarios finales sobre cómo utilizar el sistema
-

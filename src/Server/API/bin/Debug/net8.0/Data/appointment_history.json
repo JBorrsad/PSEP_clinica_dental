@@ -194,5 +194,19 @@
     "PatientName": "Juan Borr\u00E1s",
     "Action": "Confirmada",
     "Timestamp": "2025-03-11T06:16:07.3661806+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 21,
+    "PatientName": "Juan Borr\u00E1s",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-11T06:33:05.5043365+01:00"
+  },
+  {
+    "Id": null,
+    "AppointmentId": 25,
+    "PatientName": "PRUEBA PARA VIDEO",
+    "Action": "Confirmada",
+    "Timestamp": "2025-03-11T06:34:54.6386373+01:00"
   }
 ]

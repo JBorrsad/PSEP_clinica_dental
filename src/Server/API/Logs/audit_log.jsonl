@@ -907,3 +907,49 @@
 {"Timestamp":"2025-03-11T06:26:16.7139838+01:00","Operation":"GET","Resource":"Appointments/Available/2025-03-11","User":"system","Details":"Available: 2025-03-11","IpAddress":"127.0.0.1"}
 {"Timestamp":"2025-03-11T06:26:30.1924745+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 21, 22, 23","IpAddress":"127.0.0.1"}
 {"Timestamp":"2025-03-11T06:27:03.8279218+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 21, 22, 23","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:32:58.2841857+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 21, 22, 23","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:32:58.2971326+01:00","Operation":"GET","Resource":"Appointments","User":"system","Details":"GetAll","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:32:58.2972877+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 18 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:32:58.2998792+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 21, 22, 23","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:05.6986659+01:00","Operation":"PUT","Resource":"Appointment/21/Confirm","User":"system","Details":"Confirm: 21","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:05.7862366+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 2 pending appointments. IDs: 22, 23","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:05.7865014+01:00","Operation":"GET","Resource":"Appointments","User":"system","Details":"GetAll","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:05.7889952+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 2 pending appointments. IDs: 22, 23","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:05.7961991+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 19 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:05.8035948+01:00","Operation":"GET","Resource":"Appointments","User":"system","Details":"GetAll","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:46.2973906+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 2 pending appointments. IDs: 22, 23","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:46.3002165+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 19 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:33:46.3171583+01:00","Operation":"POST","Resource":"Appointment","User":"system","Details":"Create: 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:09.2269974+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 19 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:09.2412353+01:00","Operation":"GET","Resource":"Appointments","User":"system","Details":"GetAll","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:09.2416056+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 19 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:09.2440691+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:19.079653+01:00","Operation":"GET","Resource":"Appointments/Available/2025-03-11","User":"system","Details":"Available: 2025-03-11","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:41.3185931+01:00","Operation":"POST","Resource":"Appointment","User":"system","Details":"Create: 25","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:41.4574461+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 4 pending appointments. IDs: 22, 23, 24, 25","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:41.4576203+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 19 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:44.0412503+01:00","Operation":"GET","Resource":"Appointments/Available/2025-03-11","User":"system","Details":"Available: 2025-03-11","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:54.6800273+01:00","Operation":"PUT","Resource":"Appointment/25/Confirm","User":"system","Details":"Confirm: 25","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:54.76318+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 20 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:54.7663216+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:54.7732559+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 20 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:34:54.7827217+01:00","Operation":"GET","Resource":"Appointments","User":"system","Details":"GetAll","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:35:04.0721061+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-11","User":"system","Details":"ForDate: 2025-03-11","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:35:09.1520692+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:35:12.9780394+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-10","User":"system","Details":"ForDate: 2025-03-10","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:35:14.1636243+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-18","User":"system","Details":"ForDate: 2025-03-18","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:35:15.060395+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-13","User":"system","Details":"ForDate: 2025-03-13","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:35:16.1597093+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-27","User":"system","Details":"ForDate: 2025-03-27","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:36:09.1408001+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:37:09.1509948+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:38:22.4732778+01:00","Operation":"GET","Resource":"Appointments/History","User":"system","Details":"GetHistory: Found 20 appointments in history","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:38:22.4885665+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:38:22.4893322+01:00","Operation":"GET","Resource":"Appointments","User":"system","Details":"GetAll","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:38:22.4921993+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:39:06.0628986+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-13","User":"system","Details":"ForDate: 2025-03-13","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:39:06.6364508+01:00","Operation":"GET","Resource":"Appointments/ForDate/2025-03-11","User":"system","Details":"ForDate: 2025-03-11","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:39:22.396506+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:40:23.1885212+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:41:23.1953576+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:42:23.1916116+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
+{"Timestamp":"2025-03-11T06:43:23.191541+01:00","Operation":"GET","Resource":"Appointments/Pending","User":"system","Details":"GetPending: Found 3 pending appointments. IDs: 22, 23, 24","IpAddress":"127.0.0.1"}
