@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Server.Data.Firebase;
 using Server.Data.Json;
+using Server.Security.Authentication;
 using Server.Security.Encryption;
 using Server.Security.Logging;
 using Server.Socket;
@@ -31,6 +32,10 @@ builder.Services.AddCors(options =>
 });
 
 // Configuración de JWT
+var jwtSecretKey = "Clave_Segura_Para_JWT_Tokens_PSEP_2023";
+var jwtIssuer = "ClinicaDental.API";
+var jwtAudience = "ClinicaDental.Clients";
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -40,10 +45,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "ClinicaDental.API",
-            ValidAudience = "ClinicaDental.Clients",
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("Clave_Segura_Para_JWT_Tokens_PSEP_2023"))
+                Encoding.UTF8.GetBytes(jwtSecretKey))
         };
     });
 
@@ -53,6 +58,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Registrar servicios
+builder.Services.AddSingleton<JwtAuthService>(provider => 
+    new JwtAuthService(jwtSecretKey, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<AsymmetricEncryptionService>();
 builder.Services.AddSingleton<JsonDataRepository>(provider => 
     new JsonDataRepository(Path.Combine(builder.Environment.ContentRootPath, "Data")));

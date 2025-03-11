@@ -5,120 +5,110 @@ const API_URL = window.location.origin + '/api';
 // Variables globales
 let authToken = null;
 
-// Comprobar si hay un token guardado y verificar su validez
+// Función para verificar la autenticación
 function checkAuth() {
     console.log("Verificando autenticación...");
-    
     const token = localStorage.getItem('authToken');
-    if (token) {
-        console.log("Token encontrado, procediendo a validarlo");
-        authToken = token;
-        
-        // Validar que el token sea válido
-        validateToken(token)
-            .then(isValid => {
-                if (isValid) {
-                    console.log("Token válido, actualizando interfaz");
-                    
-                    // Mostrar la información del usuario
-                    showUserInfo();
-                    
-                    // Inicializar el dashboard si la función está disponible
-                    if (typeof initializeDashboard === 'function') {
-                        console.log("Inicializando dashboard desde auth.js");
-                        initializeDashboard();
-                    } else {
-                        console.error("Función initializeDashboard no encontrada");
-                    }
-                } else {
-                    console.log("Token inválido, redirigiendo a login");
-                    localStorage.removeItem('authToken');
-                    authToken = null;
-                    window.location.href = '/login.html';
-                }
-            })
-            .catch(error => {
-                console.error("Error al validar token:", error);
-                localStorage.removeItem('authToken');
-                authToken = null;
-                window.location.href = '/login.html';
-            });
-    } else {
-        console.log("No hay token guardado, redirigiendo a login");
-        window.location.href = '/login.html';
+    
+    if (!token) {
+        console.log("No hay token de autenticación. Redirigiendo a login.");
+        window.location.href = 'login.html';
+        return;
     }
+    
+    // Validar el token
+    validateToken(token)
+        .then(isValid => {
+            if (!isValid) {
+                console.log("Token inválido. Redirigiendo a login.");
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            console.log("Token válido. Mostrando panel de administración.");
+            // Mostrar información del usuario
+            showUserInfo();
+            
+            // Configurar logout
+            setupLogout();
+        })
+        .catch(error => {
+            console.error("Error al validar token:", error);
+            localStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        });
 }
 
-// Validar token con el servidor
+// Función para validar el token
 async function validateToken(token) {
     try {
-        console.log(`Validando token: ${token.substring(0, 15)}...`);
-        
+        console.log("Validando token con el servidor...");
         const response = await fetch(`${API_URL}/Auth/validate`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ token })
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log("Validación exitosa:", data);
-            return data.isValid;
-        } else {
-            console.error(`Error al validar token: ${response.status} ${response.statusText}`);
+        
+        if (!response.ok) {
+            console.log("Error al validar token:", response.status);
             return false;
         }
+        
+        const data = await response.json();
+        console.log("Respuesta de validación:", data);
+        // La propiedad en la respuesta es 'valid'
+        return data.valid;
     } catch (error) {
-        console.error("Error al validar token:", error);
+        console.error("Error de conexión al validar token:", error);
         return false;
     }
 }
 
-// Mostrar información del usuario
+// Función para mostrar la información del usuario
 function showUserInfo() {
-    const userEmailElement = document.getElementById('userEmail');
-    if (userEmailElement) {
-        try {
-            // Obtener el email del token (JWT)
-            const token = localStorage.getItem('authToken');
-            if (token) {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                const email = payload.email || 'Administrador';
-                userEmailElement.textContent = email;
-            } else {
-                userEmailElement.textContent = 'Usuario';
-            }
-        } catch (error) {
-            console.error("Error al decodificar token:", error);
-            userEmailElement.textContent = 'Usuario';
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        
+        // Decodificar el token (formato simple JWT)
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) return;
+        
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log("Información del usuario:", payload);
+        
+        // Mostrar email del usuario
+        const userEmailElement = document.getElementById('userEmail');
+        if (userEmailElement && payload.email) {
+            userEmailElement.textContent = payload.email;
+        } else if (userEmailElement && payload.name) {
+            userEmailElement.textContent = payload.name;
         }
+    } catch (error) {
+        console.error("Error al mostrar información del usuario:", error);
     }
 }
 
-// Manejar el cierre de sesión
+// Función para configurar el botón de logout
 function setupLogout() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
+        logoutBtn.addEventListener('click', logout);
     }
 }
 
-// Cerrar sesión
+// Función para cerrar sesión
 function logout() {
     console.log("Cerrando sesión...");
     localStorage.removeItem('authToken');
-    authToken = null;
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
 }
 
-// Inicializar cuando el DOM esté completamente cargado
+// Iniciar verificación de autenticación cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM cargado, inicializando autenticación");
+    console.log("Documento cargado. Iniciando verificación de autenticación.");
     checkAuth();
-    setupLogout();
 }); 
