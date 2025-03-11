@@ -13,6 +13,9 @@ $apiUrl = "http://localhost:5021/swagger"
 $webClientUrl = "http://localhost:5021/index.html"  # Calendario para citas
 $staffLoginUrl = "http://localhost:5021/admin/index.html" # URL corregida para el panel de administración
 
+# Puerto usado por la aplicación
+$appPort = "5021"
+
 # Función para detectar Chrome
 function Get-ChromePath {
     $chromePaths = @(
@@ -50,15 +53,61 @@ function Write-ColorOutput($ForegroundColor) {
 # Detener cualquier instancia anterior que pueda estar ejecutándose
 Write-ColorOutput "Yellow" "Deteniendo instancias anteriores de la aplicación..."
 try {
-    # Detener cualquier proceso dotnet que pueda estar usando el puerto 5021
-    Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -match "API" -or $_.CommandLine -match "Server.API" } | Stop-Process -Force
+    # 1. Detener procesos de dotnet relacionados con la aplicación
+    $dotnetProcesses = Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | 
+        Where-Object { 
+            $_.MainWindowTitle -match "API" -or 
+            $_.CommandLine -match "Server.API" -or 
+            $_.CommandLine -match "ClinicaDental" -or
+            $_.CommandLine -match "ServerAPI" 
+        }
     
-    # Esperar un momento para asegurarnos de que los procesos se detengan
-    Start-Sleep -Seconds 2
+    if ($dotnetProcesses) {
+        Write-ColorOutput "Cyan" "Deteniendo $($dotnetProcesses.Count) procesos de dotnet..."
+        $dotnetProcesses | Stop-Process -Force
+    }
+    
+    # 2. Buscar cualquier proceso que esté usando el puerto de la aplicación
+    $netstatOutput = netstat -ano | Select-String ":$appPort "
+    foreach ($line in $netstatOutput) {
+        if ($line -match ".*:$appPort.*LISTENING.*?(\d+)") {
+            $processId = $matches[1]
+            Write-ColorOutput "Cyan" "Deteniendo proceso (PID: $processId) que usa el puerto $appPort"
+            Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+        }
+    }
+    
+    # 3. Detener procesos del navegador que puedan estar conectados a la aplicación
+    $browserProcesses = Get-Process -Name "chrome", "msedge", "firefox" -ErrorAction SilentlyContinue | 
+        Where-Object { $_.CommandLine -match "localhost:$appPort" }
+    
+    if ($browserProcesses) {
+        Write-ColorOutput "Cyan" "Cerrando pestañas del navegador conectadas a la aplicación..."
+        $browserProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
+    }
+    
+    # 4. Esperar para asegurar que todos los procesos se hayan detenido
+    Start-Sleep -Seconds 3
+    
+    # 5. Verificar si todavía hay procesos usando el puerto
+    $checkPortAgain = netstat -ano | Select-String ":$appPort "
+    if ($checkPortAgain) {
+        Write-ColorOutput "Red" "¡Advertencia! El puerto $appPort todavía está en uso. Intentando forzar el cierre..."
+        foreach ($line in $checkPortAgain) {
+            if ($line -match ".*:$appPort.*LISTENING.*?(\d+)") {
+                $processId = $matches[1]
+                Write-ColorOutput "Red" "Forzando cierre del proceso (PID: $processId)"
+                Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+            }
+        }
+        # Esperar un poco más
+        Start-Sleep -Seconds 2
+    }
     
     Write-ColorOutput "Green" "Instancias anteriores detenidas correctamente"
 } catch {
     Write-ColorOutput "Yellow" "Advertencia al detener instancias anteriores: $_"
+    # Continuamos con el script aunque haya habido un error
 }
 
 # Verificar si los proyectos existen

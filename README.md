@@ -6,6 +6,26 @@
   <img src="https://img.shields.io/badge/Licencia-MIT-green" alt="Licencia">
 </p>
 
+## 📸 Capturas de Pantalla
+
+<p align="center">
+  <b>Panel de Administración</b><br>
+  <img src="img/admin.png" alt="Panel de Administración" width="700"><br>
+  <i>Panel completo con calendario, notificaciones en tiempo real y gestión de citas</i>
+</p>
+
+<p align="center">
+  <b>Formulario de Reserva de Citas</b><br>
+  <img src="img/reservarcita.png" alt="Formulario de Reserva" width="700"><br>
+  <i>Interfaz intuitiva para que los pacientes soliciten sus citas</i>
+</p>
+
+<p align="center">
+  <b>Informe de API</b><br>
+  <img src="img/informeapi.png" alt="Informe de API" width="700"><br>
+  <i>Documentación detallada de todos los endpoints disponibles</i>
+</p>
+
 ---
 
 ## 📋 Índice
@@ -25,10 +45,9 @@
 10. [Tests y Pruebas Automatizadas](#tests-y-pruebas-automatizadas)
 11. [Scripts de Utilidad](#scripts-de-utilidad)
 12. [Ejecución del Proyecto](#ejecución-del-proyecto)
-13. [Demo en Video](#demo-en-video)
-14. [Conclusiones](#conclusiones)
-15. [Deudas Técnicas](#deudas-técnicas)
-16. [Documentación Adicional](#documentación-adicional)
+13. [Conclusiones](#conclusiones)
+14. [Deudas Técnicas](#deudas-técnicas)
+15. [Documentación Adicional](#documentación-adicional)
 
 ---
 
@@ -45,12 +64,12 @@ El script principal `iniciar_clinic_app.ps1` lo hace todo por ti con un solo com
 ```
 
 Este script:
-1. **Detiene cualquier instancia** previa del servidor que pudiera estar ejecutándose
+1. **Detiene cualquier instancia previa** del servidor o procesos relacionados que pudieran estar ejecutándose
 2. **Compila la solución completa** asegurando que todo el código esté actualizado
 3. **Inicia el servidor API** en una ventana separada de PowerShell
 4. **Abre automáticamente dos páginas en el navegador**:
    - El **calendario para pacientes** (http://localhost:5021/index.html)
-   - El **panel de administración** (http://localhost:5021/admin/login.html)
+   - El **panel de administración** (http://localhost:5021/admin/index.html)
 5. Si tienes Chrome instalado, abrirá ambas páginas como pestañas en la misma ventana
 
 > **Nota**: Para acceder al panel de administración, usa las credenciales:
@@ -93,7 +112,7 @@ Estos scripts facilitan enormemente el proceso de desarrollo y pruebas, permitie
 
 He creado un video demostrativo donde muestro el funcionamiento completo del sistema con todos los componentes interactuando en tiempo real:
 
-[![Demo del Sistema de Gestión de Citas](https://img.youtube.com/vi/Gl34w1-8Edc/0.jpg)](https://youtu.be/Gl34w1-8Edc)
+[![Demo del Sistema de Gestión de Citas](https://img.youtube.com/vi/Gl34w1-8Edc/0.jpg)](https://youtu.be/ZDbxcKNeX9M)
 
 ### Lo que se muestra en el video:
 
@@ -107,7 +126,7 @@ He creado un video demostrativo donde muestro el funcionamiento completo del sis
   - Confirmación de citas pendientes por parte del personal
   - Sincronización automática entre todos los componentes
 
-- **Replicación en Firebase**:
+- **Replicación en Firebase**: (Esto se me ha olvidado ponerlo en el video :S)
   - Demostración de cómo los datos se actualizan instantáneamente en Firebase Realtime Database
   - Verificación de la persistencia en múltiples fuentes
 
@@ -189,8 +208,9 @@ En esta parte del proyecto, he implementado:
 - **Conexiones asíncronas** de múltiples clientes
 - **Bloqueo de recursos compartidos** usando ConcurrentDictionary
 - **Cifrado asimétrico** en las comunicaciones
-
-Lo más complicado de esta parte fue entender cómo manejar múltiples conexiones simultáneas y cómo implementar correctamente el cifrado RSA. Tuve que investigar bastante sobre cómo intercambiar claves públicas entre cliente y servidor.
+- **Indicador visual de estado de conexión** para monitorear la comunicación WebSocket
+- **Sistema robusto de procesamiento de mensajes** con manejo de diferentes formatos
+- **Notificaciones visuales mejoradas** con animaciones y códigos de color
 
 ```csharp
 // Intercambio de claves públicas entre cliente y servidor
@@ -477,6 +497,7 @@ El calendario muestra visualmente:
 - **Círculos verdes** para días con citas confirmadas
 - **Círculos amarillos** para días con citas pendientes
 - **Indicadores numéricos** que muestran la cantidad de citas en cada día
+- **Contraste mejorado** en todos los textos y elementos para mejor visibilidad
 
 ```javascript
 // Mostrar indicadores de citas
@@ -492,6 +513,70 @@ if (confirmedCount > 0 || pendingCount > 0) {
     }
     
     html += '</div>';
+}
+```
+
+### Sistema de Notificaciones en Tiempo Real
+
+El panel incluye un sofisticado sistema de notificaciones que:
+
+- **Muestra un indicador de estado de conexión WebSocket** en la esquina inferior derecha:
+  - **Verde**: Conexión activa
+  - **Amarillo**: Reconectando
+  - **Rojo**: Error de conexión
+- **Proporciona notificaciones visuales** cuando se reciben actualizaciones
+- **Garantiza actualizaciones automáticas** del panel cuando se crean nuevas citas desde la página principal
+- **Muestra animaciones** para indicar actividad incluso cuando la consola no está visible
+- **Código de colores** para diferentes tipos de notificaciones (nuevas citas, actualizaciones, etc.)
+
+```javascript
+function setupWebSocketConnection() {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    
+    // Crear conexión WebSocket
+    webSocket = new WebSocket(wsUrl);
+    
+    // Mostrar indicador de estado
+    const statusIndicator = document.getElementById('ws-status');
+    
+    webSocket.onopen = () => {
+        console.log("WebSocket conectado");
+        statusIndicator.className = 'ws-status connected';
+        statusIndicator.title = 'WebSocket conectado';
+    };
+    
+    webSocket.onclose = () => {
+        console.log("WebSocket desconectado");
+        statusIndicator.className = 'ws-status disconnected';
+        statusIndicator.title = 'WebSocket desconectado - Reconectando...';
+        
+        // Intentar reconectar después de 3 segundos
+        setTimeout(setupWebSocketConnection, 3000);
+    };
+    
+    webSocket.onerror = (error) => {
+        console.error("Error en WebSocket:", error);
+        statusIndicator.className = 'ws-status error';
+        statusIndicator.title = 'Error en la conexión WebSocket';
+    };
+    
+    webSocket.onmessage = (event) => {
+        console.log("Mensaje recibido:", event.data);
+        statusIndicator.classList.add('active');
+        
+        // Quitar clase 'active' después de 500ms para crear efecto de parpadeo
+        setTimeout(() => {
+            statusIndicator.classList.remove('active');
+        }, 500);
+        
+        try {
+            // Procesar mensaje recibido
+            processWebSocketNotification(event.data);
+        } catch (error) {
+            console.error("Error al procesar notificación:", error);
+        }
+    };
 }
 ```
 
@@ -835,16 +920,6 @@ cd src/Tools/Scripts
 .\run-all-tests.ps1
 ```
 
-## Demo en Video
-
-[Ver Demo en YouTube](https://youtube.com/link_a_tu_video)
-
-En esta demo muestro:
-- Creación, consulta, modificación y eliminación de citas
-- Funcionamiento del sistema con dos clientes simultáneos
-- Notificaciones en tiempo real
-- Verificación de la replicación en Firebase
-- Demostración de la seguridad implementada
 
 ## Conclusiones
 
@@ -878,6 +953,4 @@ Para facilitar el uso y mantenimiento del sistema, he creado documentación adic
 - [**Documentación de Herramientas**](docs/herramientas.md): Guía detallada sobre todas las herramientas, scripts y utilidades disponibles
 - [**Documentación de API REST**](docs/api-endpoints.md): Detalle completo de todos los endpoints disponibles con ejemplos de uso
 - [**Manual de Usuario**](docs/manual-usuario.md): Guía para usuarios finales sobre cómo utilizar el sistema
-- [**Guía de Desarrollo**](docs/guia-desarrollo.md): Información para desarrolladores que deseen extender o modificar el sistema
 
-Estos documentos complementan esta documentación principal y ofrecen detalles específicos para diferentes audiencias. 
